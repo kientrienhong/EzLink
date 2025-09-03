@@ -1,0 +1,18 @@
+package com.example.linkkeeper.features.link.data
+
+import androidx.lifecycle.LiveData
+import com.example.linkkeeper.features.tag.data.Tag
+
+interface LinkRepository {
+    suspend fun getTag(id: Int): Tag
+
+    fun getLinkListLiveData(tagId: Int): LiveData<List<Link>>
+
+    fun getAllLink(tagId: Int): List<Link>
+
+    suspend fun insertLink(link: Link): Boolean
+
+    suspend fun updateLink(link: Link): Boolean
+
+    suspend fun search(query: String): List<Link>
+}
