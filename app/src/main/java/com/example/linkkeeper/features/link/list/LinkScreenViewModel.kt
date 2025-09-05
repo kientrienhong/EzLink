@@ -122,6 +122,10 @@ class LinkScreenViewModel @Inject constructor(
                         } else {
                             ""
                         }
+                    } catch (ex: IllegalArgumentException) {
+                        throw ex
+                    } catch (_: Exception) {
+                        ""
                     }
 
                     val crawlData = LinkUrlHelper.crawlData(linkRetryStepToUrl)
