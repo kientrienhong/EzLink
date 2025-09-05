@@ -1,18 +1,20 @@
 package com.example.linkkeeper.features.link.editor
 
 import android.annotation.SuppressLint
-import android.util.Log
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -29,9 +31,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.linkkeeper.R
 import com.example.linkkeeper.features.common.ApiResult
@@ -71,19 +77,17 @@ fun LinkEditorScreen(
     ) {
         LinkEditorScreenHeader(
             Modifier.padding(bottom = 8.dp),
-            link,
+            link.url,
             insertResult,
             popNavigation,
-            onSave = {
-                if (isEdit) {
-                    viewModel.updateLink(it)
-                } else {
-                    viewModel.insertLink(it)
-                }
-            },
-            descriptionProvider = { description },
-            titleProvider = { title }
-        )
+        ) {
+            val link = link.copy(title = title, description = description)
+            if (isEdit) {
+                viewModel.updateLink(link)
+            } else {
+                viewModel.insertLink(link)
+            }
+        }
         TransparentTextField(
             value = title,
             placeholder = "Add a title",
@@ -108,13 +112,12 @@ fun LinkEditorScreen(
 @Composable
 private fun LinkEditorScreenHeader(
     modifier: Modifier = Modifier,
-    link: Link,
+    url: String,
     insertResult: ApiResult<Boolean>?,
     popNavigation: () -> Unit,
-    onSave: (Link) -> Unit,
-    descriptionProvider: () -> String,
-    titleProvider: () -> String
+    onSaveClick: () -> Unit,
 ) {
+    val context = LocalContext.current
     val windowSizeClass =
         calculateWindowSizeClass(activity = LocalContext.current as android.app.Activity)
     val isBackArrowVisible = remember(windowSizeClass) {
@@ -142,27 +145,54 @@ private fun LinkEditorScreenHeader(
                     .clickable { popNavigation() }
             )
         }
-        when (insertResult) {
-            is ApiResult.Loading -> CircularProgressIndicator()
-            is ApiResult.Error,
-            null -> Text(
-                "Save",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .clickable {
-                        val finalLink =
-                            link.copy(title = titleProvider(), description = descriptionProvider())
-                        onSave(finalLink)
-                    }
-            )
+        Row(
+            modifier = Modifier.padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Color(0xFFBA8474))
+                    .size(32.dp)
+            ) {
+                Image(
+                    painterResource(R.drawable.browser),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(16.dp)
+                        .align(Alignment.Center)
+                        .clickable {
+                            val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+                            context.startActivity(browserIntent)
+                        }
+                )
+            }
+            when (insertResult) {
+                is ApiResult.Loading -> CircularProgressIndicator()
+                is ApiResult.Error,
+                null -> Text(
+                    "Save",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 8.dp).clickable { onSaveClick() }
+                )
 
-            is ApiResult.Success -> popNavigation()
+                is ApiResult.Success -> popNavigation()
+            }
         }
     }
 }
 
+@Preview
+@Composable
+fun PreviewLinkEditorScreenHeader() {
+    LinkEditorScreenHeader(
+        Modifier.padding(16.dp),
+        "https://www.example.com",
+        null,
+        {},
+    ) {}
+}
 
 @Composable
 private fun PreviewWebContainer(link: Link) {
