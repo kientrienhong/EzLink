@@ -211,7 +211,7 @@ private fun PreviewWebContainer(link: Link) {
                 when {
                     link.contentHtml.isNotEmpty() && webViewErrorType == WebViewErrorType.None ->
                         it.loadDataWithBaseURL(
-                            null,
+                            link.url,
                             link.contentHtml,
                             "text/html",
                             "UTF-8",
