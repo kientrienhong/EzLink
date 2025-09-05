@@ -29,9 +29,9 @@ import com.example.linkkeeper.ui.theme.LinkKeeperTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddItemBottomSheet(
+fun <T> AddItemBottomSheet(
     title: String,
-    stateCreate: ApiResult<Boolean>?,
+    stateCreate: ApiResult<T>?,
     onDismissRequest: () -> Unit,
     onSubmitWithEditTextValue: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -66,9 +66,9 @@ fun AddItemBottomSheet(
 }
 
 @Composable
-private fun TagAddBottomSheetContent(
+private fun <T> TagAddBottomSheetContent(
     title: String,
-    createState: ApiResult<Boolean>?,
+    createState: ApiResult<T>?,
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
     onSubmitWithEditTextValue: (String) -> Unit
@@ -109,7 +109,7 @@ private fun TagAddBottomSheetLoadingStatePreview() {
     LinkKeeperTheme {
         TagAddBottomSheetContent(
             title = "Add tag",
-            createState = ApiResult.Loading(),
+            createState = ApiResult.Loading<Unit>(),
             onDismissRequest = {},
             onSubmitWithEditTextValue = {})
     }
@@ -119,7 +119,7 @@ private fun TagAddBottomSheetLoadingStatePreview() {
 @Composable
 private fun TagAddBottomSheetInitialStatePreview() {
     LinkKeeperTheme {
-        TagAddBottomSheetContent(
+        TagAddBottomSheetContent<Unit>(
             title = "Add tag",
             createState = null,
             onDismissRequest = {},

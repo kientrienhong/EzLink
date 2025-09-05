@@ -79,6 +79,7 @@ fun LinkScreen(
         is ApiResult.Success -> LinkScreenContent(
             viewModel.tagId,
             tagResult.data,
+            urlValidationResult,
             listLink,
             searchValue.orEmpty(),
             modifier,
@@ -105,6 +106,7 @@ fun LinkScreen(
 private fun LinkScreenContent(
     tagId: Int,
     tagName: String?,
+    urlValidationResult: ApiResult<Link>?,
     listLink: List<Link>?,
     searchValue: String,
     modifier: Modifier,
@@ -160,7 +162,7 @@ private fun LinkScreenContent(
     if (showBottomSheet) {
         AddItemBottomSheet(
             title = "Add url link",
-            stateCreate = null,
+            stateCreate = urlValidationResult,
             onDismissRequest = { updateShowBottomSheet(false) },
             onSubmitWithEditTextValue = { validateUrl(tagId, it) },
             modifier = Modifier.fillMaxWidth()
