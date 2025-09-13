@@ -23,6 +23,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -35,10 +36,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.example.linkkeeper.R
 import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.common.views.MyWebView
@@ -52,16 +55,41 @@ fun LinkEditorScreen(
     popNavigation: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var description by remember { mutableStateOf(link.description) }
-    var title by remember { mutableStateOf(link.title) }
+    var description by remember(link) { mutableStateOf(link.description) }
+    var title by remember(link) { mutableStateOf(link.title) }
+    var titleError by remember { mutableStateOf("") }
     val viewModel = hiltViewModel<LinkEditorViewModel>()
     val insertResult by viewModel.resultMediatorLiveData.observeAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
+    fun validateTitle(): Boolean {
+        return if (title.trim().isEmpty()) {
+            titleError = "Title is required"
+            false
+        } else {
+            titleError = ""
+            true
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.reset()
+        }
+    }
+
+    LifecycleResumeEffect(Unit) {
+        // Do something on resume or launch effect
+
+        onPauseOrDispose {
+            // Do something on pause or dispose effect
+        }
+    }
+
     LaunchedEffect(insertResult) {
         when (val result = insertResult) {
-            is ApiResult.Success -> viewModel.reset()
+            is ApiResult.Success,
             is ApiResult.Loading,
             null -> Unit
 
@@ -74,27 +102,37 @@ fun LinkEditorScreen(
         modifier
             .padding(horizontal = 16.dp)
             .verticalScroll(scrollState)
+            .background(Color.Transparent)
     ) {
         LinkEditorScreenHeader(
-            Modifier.padding(bottom = 8.dp),
             link.url,
             insertResult,
-            popNavigation,
+            Modifier.padding(bottom = 8.dp),
+            popNavigation
         ) {
-            val link = link.copy(title = title, description = description)
-            if (isEdit) {
-                viewModel.updateLink(link)
-            } else {
-                viewModel.insertLink(link)
+            if (validateTitle()) {
+                val link = link.copy(title = title, description = description)
+                if (isEdit) {
+                    viewModel.updateLink(link)
+                } else {
+                    viewModel.insertLink(link)
+                }
             }
         }
         TransparentTextField(
             value = title,
             placeholder = "Add a title",
-            onValueChange = { title = it },
+            onValueChange = {
+                title = it
+                if (titleError.isNotEmpty() && it.trim().isNotEmpty()) {
+                    titleError = ""
+                }
+            },
             modifier = Modifier.padding(bottom = 8.dp),
             singleLine = false,
-            textStyle = MaterialTheme.typography.headlineSmall
+            textStyle = MaterialTheme.typography.headlineSmall,
+            isError = titleError.isNotEmpty(),
+            errorText = titleError
         )
         TransparentTextField(
             value = description,
@@ -111,11 +149,11 @@ fun LinkEditorScreen(
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 private fun LinkEditorScreenHeader(
-    modifier: Modifier = Modifier,
     url: String,
     insertResult: ApiResult<Boolean>?,
+    modifier: Modifier = Modifier,
     popNavigation: () -> Unit,
-    onSaveClick: () -> Unit,
+    onSaveClick: () -> Unit
 ) {
     val context = LocalContext.current
     val windowSizeClass =
@@ -149,6 +187,16 @@ private fun LinkEditorScreenHeader(
             modifier = Modifier.padding(bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Image(
+                painterResource(R.drawable.download),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable {
+
+                    }
+            )
+
             Box(
                 Modifier
                     .clip(RoundedCornerShape(2.dp))
@@ -174,7 +222,9 @@ private fun LinkEditorScreenHeader(
                     "Save",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 8.dp).clickable { onSaveClick() }
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clickable { onSaveClick() }
                 )
 
                 is ApiResult.Success -> popNavigation()
@@ -187,26 +237,22 @@ private fun LinkEditorScreenHeader(
 @Composable
 fun PreviewLinkEditorScreenHeader() {
     LinkEditorScreenHeader(
-        Modifier.padding(16.dp),
         "https://www.example.com",
         null,
-        {},
+        Modifier.padding(16.dp),
+        {}
     ) {}
 }
 
 @Composable
-private fun PreviewWebContainer(link: Link) {
+private fun PreviewWebContainer(link: Link, modifier: Modifier = Modifier) {
     var webViewErrorType by remember { mutableStateOf(WebViewErrorType.None) }
-    LaunchedEffect(webViewErrorType) {
-        Log.d("LinkEditorScreen", "webViewErrorType $webViewErrorType")
-    }
 
     when (webViewErrorType) {
         WebViewErrorType.None,
         WebViewErrorType.LocalHtmlLoadError -> MyWebView(
-            Modifier
-                .padding(top = 16.dp)
-                .fillMaxHeight(),
+            link.url,
+            modifier.padding(top = 16.dp),
             onUpdate = {
                 when {
                     link.contentHtml.isNotEmpty() && webViewErrorType == WebViewErrorType.None ->
@@ -218,7 +264,11 @@ private fun PreviewWebContainer(link: Link) {
                             null
                         )
 
-                    webViewErrorType == WebViewErrorType.LocalHtmlLoadError -> it.loadUrl(link.url)
+                    link.contentHtml.isEmpty() ||
+                            webViewErrorType == WebViewErrorType.LocalHtmlLoadError -> it.loadUrl(
+                        link.url
+                    )
+
                     webViewErrorType == WebViewErrorType.RemoteUrlLoadError -> Unit
                 }
             },
@@ -235,7 +285,13 @@ private fun PreviewWebContainer(link: Link) {
             }
         )
 
-        WebViewErrorType.RemoteUrlLoadError -> Text("Does not support preview for this link")
+        WebViewErrorType.RemoteUrlLoadError -> Text(
+            "Does not support preview for this link",
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        )
     }
 }
 

@@ -2,6 +2,7 @@ package com.example.linkkeeper.features.link.data
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -13,6 +14,9 @@ abstract class LinkDao {
 
     @Update
     abstract suspend fun updateLink(link: Link): Int
+
+    @Delete
+    abstract suspend fun deleteLink(link: Link): Int
 
     @Query("SELECT * FROM link Where tagId = :tagId")
     abstract fun getLinkListLiveData(tagId: Int): LiveData<List<Link>>

@@ -16,7 +16,7 @@ object TagBackgroundColorProvider {
     }
 }
 
-private enum class TagBackgroundColor(val nameTag: String, @ColorInt val color: Long) {
+enum class TagBackgroundColor(val nameTag: String, @ColorInt val color: Long) {
     FAVORITE("Favorite", 0xFFFAE8E7),
     READ_LATER("Read later", 0xFFE8F0FA),
     PERSONAL("Personal", 0xFFFAE8FB),

@@ -1,8 +1,9 @@
 package com.example.linkkeeper.features.tag.view
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,6 +31,7 @@ import com.example.linkkeeper.features.tag.data.Tag
 fun TagItem(
     tagViewItem: TagViewItem,
     onTagClick: (Int, String) -> Unit,
+    onLongClick: (Tag) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -38,7 +41,17 @@ fun TagItem(
             .background(tagViewItem.backgroundColor)
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
-            .clickable { onTagClick(tagViewItem.tag.id ?: 0, tagViewItem.tag.name) },
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        val tagName = tagViewItem.tag.name
+                        if (TagBackgroundColor.fromNameTag(tagName) == TagBackgroundColor.USER_TAG) {
+                            onLongClick(tagViewItem.tag)
+                        }
+                    },
+                    onTap = { onTagClick(tagViewItem.tag.id ?: 0, tagViewItem.tag.name) }
+                )
+            },
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(Modifier.padding(start = 8.dp)) {
@@ -64,7 +77,8 @@ fun TagItem(
     }
 }
 
-@Preview
+@Preview(name = "TagItemPreview", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun TagItemPreview() {
     TagItem(
@@ -73,6 +87,7 @@ fun TagItemPreview() {
             backgroundColor = Color(0xFFBB86FC)
         ),
         onTagClick = { _, _ -> },
+        onLongClick = {},
         modifier = Modifier.padding(16.dp)
     )
 }

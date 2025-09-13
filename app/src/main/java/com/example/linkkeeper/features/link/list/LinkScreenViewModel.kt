@@ -49,6 +49,9 @@ class LinkScreenViewModel @Inject constructor(
     val linkListLiveData: LiveData<List<Link>> = listLinkMediatorLiveData
 
     private val localLinkListLiveData: LiveData<List<Link>> = repository.getLinkListLiveData(tagId)
+    private val deleteLinkMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
+
+    val deleteLinkLiveData: LiveData<ApiResult<Boolean>> = deleteLinkMutableLiveData
 
     private val linkListObserver: Observer<List<Link>> = Observer {
         viewModelScope.launch {
@@ -90,7 +93,7 @@ class LinkScreenViewModel @Inject constructor(
     fun validateUrl(
         tagId: Int,
         url: String,
-        delayMillis: Long = 500,
+        delayMillis: Long = 200,
         retryStep: LinkRetryStep? = LinkRetryStep.getInitialStep()
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -118,7 +121,7 @@ class LinkScreenViewModel @Inject constructor(
                         if (e.statusCode == 429 && !retryStep.isLast()) {
                             println("429 error for: $url. Waiting for $delayMillis ms before retrying.")
                             sleep(delayMillis)
-                            return@launch validateUrl(tagId, url, delayMillis)
+                            return@launch validateUrl(tagId, url, delayMillis, retryStep.nextStep)
                         } else {
                             ""
                         }
@@ -128,21 +131,20 @@ class LinkScreenViewModel @Inject constructor(
                         ""
                     }
 
-                    val crawlData = LinkUrlHelper.crawlData(linkRetryStepToUrl)
                     val link = Link(
                         url = linkRetryStepToUrl,
                         tagId = tagId,
                         iconUrl = iconUrl,
                         title = title,
                         description = "",
-                        contentHtml = crawlData.orEmpty()
+                        contentHtml = ""
                     )
                     ApiResult.Success(link)
                 } else {
                     ApiResult.Error(IllegalArgumentException("Invalid URL"))
                 }
             } catch (e: IllegalArgumentException) {
-                Log.e("LinkScreenViewModel", "Error validating URL: ${e.message}", e)
+                Log.e("LinkScreenViewModel", "Error validating URL: ${e.message}")
                 if (!retryStep.isLast()) {
                     return@launch validateUrl(tagId, url, delayMillis, retryStep.nextStep)
                 }
@@ -184,6 +186,24 @@ class LinkScreenViewModel @Inject constructor(
 
     fun resetLinkValidationLiveData() {
         linkValidationMutableLiveData.value = null
+    }
+
+    fun deleteLink(link: Link) {
+        viewModelScope.launch {
+            if (deleteLinkLiveData.value is ApiResult.Loading) {
+                return@launch
+            }
+
+            deleteLinkMutableLiveData.value = ApiResult.Loading()
+
+            val result = runBlocking(
+                onBlocking = { repository.deleteLink(link) },
+                onSuccess = { ApiResult.Success(it) },
+                onError = { ApiResult.Error(it) }
+            )
+
+            deleteLinkMutableLiveData.value = result
+        }
     }
 
     private fun sanitizeSearchQuery(query: String?): String {

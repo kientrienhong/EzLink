@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-private class LinkEditorScreenArgs(val link: Link, val isEdit: Boolean) : Parcelable
+private data class LinkEditorScreenArgs(val link: Link, val isEdit: Boolean) : Parcelable
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -71,15 +71,19 @@ fun LinkScreen(popBack: () -> Unit, modifier: Modifier = Modifier) {
                     scaffoldNavigator.currentDestination?.contentKey ?: return@AnimatedPane
                 val link = selectedItem.link
                 val isEdit = selectedItem.isEdit
-                LinkEditorScreen(link, isEdit, popNavigation = {
-                    if (scaffoldNavigator.currentDestination?.pane == ListDetailPaneScaffoldRole.Detail) {
-                        scope.launch {
-                            scaffoldNavigator.navigateBack()
+                LinkEditorScreen(
+                    link,
+                    isEdit,
+                    popNavigation = {
+                        if (scaffoldNavigator.currentDestination?.pane == ListDetailPaneScaffoldRole.Detail) {
+                            scope.launch {
+                                scaffoldNavigator.navigateBack()
+                            }
+                        } else {
+                            popBack()
                         }
-                    } else {
-                        popBack()
                     }
-                })
+                )
             }
         },
         defaultBackBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange

@@ -15,4 +15,6 @@ interface LinkRepository {
     suspend fun updateLink(link: Link): Boolean
 
     suspend fun search(query: String): List<Link>
+
+    suspend fun deleteLink(link: Link): Boolean
 }

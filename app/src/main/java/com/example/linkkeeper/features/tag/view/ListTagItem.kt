@@ -10,13 +10,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.common.views.GrayLogoWithTextView
+import com.example.linkkeeper.features.tag.data.Tag
 
 @Composable
 @Stable
 fun ListTagItem(
     stateFlowTagList: List<TagViewItem>,
     stateFlowInitialLoad: ApiResult<Unit>,
-    onTagClick: (Int, String) -> Unit
+    onTagClick: (Int, String) -> Unit,
+    onLongClick: (Tag) -> Unit
 ) {
     when (stateFlowInitialLoad) {
         is ApiResult.Loading -> {
@@ -39,7 +41,7 @@ fun ListTagItem(
                     key = { index -> stateFlowTagList[index].tag.id ?: 0 }
                 ) { index ->
                     val tagViewItem = stateFlowTagList[index]
-                    TagItem(tagViewItem, onTagClick)
+                    TagItem(tagViewItem, onTagClick, onLongClick)
                 }
             }
         }

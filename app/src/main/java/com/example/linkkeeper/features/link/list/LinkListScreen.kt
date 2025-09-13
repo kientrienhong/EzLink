@@ -7,15 +7,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +53,9 @@ fun LinkScreen(
     val urlValidationResult by viewModel.linkValidationLiveData.observeAsState()
     val listLink by viewModel.linkListLiveData.observeAsState()
     val searchValue by viewModel.searchLiveData.observeAsState()
+    val deleteLinkResult by viewModel.deleteLinkLiveData.observeAsState()
     var showBottomSheet by remember { mutableStateOf(false) }
+    var currentSelectedLink by remember { mutableStateOf<Link?>(null) }
 
     LaunchedEffect(Unit) { viewModel.getTagName() }
 
@@ -75,21 +81,66 @@ fun LinkScreen(
         }
     }
 
+    LaunchedEffect(deleteLinkResult) {
+        val result = deleteLinkResult
+        when (result) {
+            is ApiResult.Error -> {
+                Toast.makeText(
+                    context,
+                    result.exception.message,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            is ApiResult.Success -> currentSelectedLink = null
+            is ApiResult.Loading,
+            null -> Unit
+        }
+    }
+
     when (val tagResult = tagRetrievingResult) {
-        is ApiResult.Success -> LinkScreenContent(
-            viewModel.tagId,
-            tagResult.data,
-            urlValidationResult,
-            listLink,
-            searchValue.orEmpty(),
-            modifier,
-            showBottomSheet,
-            viewModel::validateUrl,
-            popBackStack,
-            navigateToLinkEditor,
-            viewModel::updateSearch,
-            { showBottomSheet = it },
-        )
+        is ApiResult.Success -> Column(modifier.padding(horizontal = 16.dp)) {
+            LinkScreenContent(
+                tagResult.data,
+                listLink,
+                searchValue.orEmpty(),
+                popBackStack,
+                navigateToLinkEditor,
+                viewModel::updateSearch,
+                { showBottomSheet = it },
+                { currentSelectedLink = it }
+            )
+            if (showBottomSheet) {
+                AddItemBottomSheet(
+                    title = "Add url link",
+                    stateCreate = urlValidationResult,
+                    onDismissRequest = { showBottomSheet = false },
+                    onSubmitWithEditTextValue = { viewModel.validateUrl(viewModel.tagId, it) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            if (currentSelectedLink != null) {
+                AlertDialog(
+                    onDismissRequest = { currentSelectedLink = null },
+                    title = { Text("Delete Link") },
+                    text = { Text("Are you sure you want to delete this link?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                viewModel.deleteLink(currentSelectedLink ?: return@TextButton)
+                            }
+                        ) {
+                            Text("Delete")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { currentSelectedLink = null }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+        }
 
         is ApiResult.Error -> Text("Error")
         is ApiResult.Loading,
@@ -103,70 +154,52 @@ fun LinkScreen(
 @SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
-private fun LinkScreenContent(
-    tagId: Int,
+private fun ColumnScope.LinkScreenContent(
     tagName: String?,
-    urlValidationResult: ApiResult<Link>?,
     listLink: List<Link>?,
     searchValue: String,
-    modifier: Modifier,
-    showBottomSheet: Boolean,
-    validateUrl: (Int, String) -> Unit,
     popBackStack: () -> Unit,
     onNavigateToEditor: (Link, Boolean) -> Unit,
     updateSearchValue: (String) -> Unit,
-    updateShowBottomSheet: (Boolean) -> Unit
+    updateShowBottomSheet: (Boolean) -> Unit,
+    onLongClickItem: (Link) -> Unit
 ) {
-    Column(modifier.padding(horizontal = 16.dp)) {
-        LinkScreenHeader(
-            tagName = tagName,
-            popBackStack = popBackStack
-        ) { updateShowBottomSheet(it) }
-        MyTextField(searchValue, updateSearchValue, Modifier.padding(bottom = 8.dp))
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(count = 2),
-            contentPadding = PaddingValues(vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (listLink?.isEmpty() == true) {
-                item {
-                    val emptyMessage = if (searchValue.isNotEmpty()) {
-                        "No links found for '$searchValue'. Click the '+' button to create a new link."
-                    } else {
-                        "No links found"
-                    }
-                    Text(
-                        emptyMessage,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+    LinkScreenHeader(
+        tagName = tagName,
+        popBackStack = popBackStack
+    ) { updateShowBottomSheet(it) }
+    MyTextField(searchValue, updateSearchValue, Modifier.padding(bottom = 8.dp))
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(count = 2),
+        contentPadding = PaddingValues(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalItemSpacing = 16.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        if (listLink?.isEmpty() == true) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                val emptyMessage = if (searchValue.isNotEmpty()) {
+                    "No links found for '$searchValue'. Click the '+' button to create a new link."
+                } else {
+                    "No links found"
                 }
-            }
-
-            items(listLink?.size ?: 0) {
-                LinkItem(
-                    listLink.orEmpty()[it],
-                    onNavigateToEditor = { link ->
-                        onNavigateToEditor(link, true /* isEdit */)
-                    },
-                    onDeleteClick = {}
+                Text(
+                    emptyMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-    }
 
-    if (showBottomSheet) {
-        AddItemBottomSheet(
-            title = "Add url link",
-            stateCreate = urlValidationResult,
-            onDismissRequest = { updateShowBottomSheet(false) },
-            onSubmitWithEditTextValue = { validateUrl(tagId, it) },
-            modifier = Modifier.fillMaxWidth()
-        )
+        items(listLink?.size ?: 0) {
+            LinkItem(
+                listLink.orEmpty()[it],
+                onNavigateToEditor = { link -> onNavigateToEditor(link, true /* isEdit */) },
+                onLongClick = onLongClickItem
+            )
+        }
     }
 }
 

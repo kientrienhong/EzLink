@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.common.runBlocking
+import com.example.linkkeeper.features.link.LinkUrlHelper
 import com.example.linkkeeper.features.link.data.Link
 import com.example.linkkeeper.features.link.data.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ class LinkEditorViewModel @Inject constructor(private val repository: LinkReposi
     ViewModel() {
     private val linkInsertResultMutableLiveData: MutableLiveData<ApiResult<Boolean>?> =
         MutableLiveData()
-    private val linkUpdateResultMutableLiveData: MutableLiveData<ApiResult<Boolean>?> = MutableLiveData()
+    private val linkUpdateResultMutableLiveData: MutableLiveData<ApiResult<Boolean>?> =
+        MutableLiveData()
     val resultMediatorLiveData: MediatorLiveData<ApiResult<Boolean>> = MediatorLiveData()
 
     init {
@@ -37,7 +39,11 @@ class LinkEditorViewModel @Inject constructor(private val repository: LinkReposi
             }
             linkInsertResultMutableLiveData.value = ApiResult.Loading()
             val result = runBlocking(
-                onBlocking = { repository.insertLink(link) },
+                onBlocking = {
+                    val crawlData = LinkUrlHelper.crawlData(link.url)
+                    val linkWithCrawledData = link.copy(contentHtml = crawlData.orEmpty())
+                    repository.insertLink(linkWithCrawledData)
+                },
                 onSuccess = { ApiResult.Success(it) },
                 onError = { ApiResult.Error(it) }
             )

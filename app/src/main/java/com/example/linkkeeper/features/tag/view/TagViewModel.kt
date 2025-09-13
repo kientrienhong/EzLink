@@ -24,6 +24,8 @@ class TagViewModel @Inject constructor(private val repository: TagRepository) : 
     val initialLoadLiveData: LiveData<ApiResult<Unit>> = initialLoadMutableLiveData
     private val createTagMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
     val createTagLiveData: LiveData<ApiResult<Boolean>> = createTagMutableLiveData
+    private val deleteTagMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
+    val deleteTagLiveData: LiveData<ApiResult<Boolean>> = deleteTagMutableLiveData
 
     init {
         getTagList()
@@ -60,6 +62,19 @@ class TagViewModel @Inject constructor(private val repository: TagRepository) : 
         }
     }
 
+    fun deleteTag(tag: Tag) {
+        viewModelScope.launch {
+            if (deleteTagLiveData.value is ApiResult.Loading) {
+                return@launch
+            }
+            deleteTagMutableLiveData.value = ApiResult.Loading()
+            deleteTagMutableLiveData.value = runBlocking(
+                onBlocking = { repository.deleteTag(tag) },
+                onSuccess = { ApiResult.Success(it) },
+                onError = { ApiResult.Error(it) }
+            )
+        }
+    }
     private fun Tag.toTagViewItem(): TagViewItem {
         val backgroundColor = TagBackgroundColorProvider.getColorFromTag(this)
         return TagViewItem(this, backgroundColor)

@@ -20,4 +20,6 @@ class LinkRepositoryImpl @Inject constructor(
     override suspend fun updateLink(link: Link): Boolean = linkDao.updateLink(link) > 0
 
     override suspend fun search(query: String): List<Link> = linkDao.search(query)
+
+    override suspend fun deleteLink(link: Link): Boolean = linkDao.deleteLink(link) > 0
 }
