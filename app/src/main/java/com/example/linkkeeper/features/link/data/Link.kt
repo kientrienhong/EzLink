@@ -20,12 +20,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Parcelize
 data class Link(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int? = null,
+    val id: Int,
     val tagId: Int,
     val url: String,
     val iconUrl: String?,
     val title: String,
-    val description: String,
-    val contentHtml: String
+    val description: String
 ) : Parcelable

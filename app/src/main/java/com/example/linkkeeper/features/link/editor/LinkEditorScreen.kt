@@ -46,6 +46,7 @@ import com.example.linkkeeper.R
 import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.common.views.MyWebView
 import com.example.linkkeeper.features.common.views.TransparentTextField
+import com.example.linkkeeper.features.link.DownloadIcon
 import com.example.linkkeeper.features.link.data.Link
 
 @Composable
@@ -60,6 +61,7 @@ fun LinkEditorScreen(
     var titleError by remember { mutableStateOf("") }
     val viewModel = hiltViewModel<LinkEditorViewModel>()
     val insertResult by viewModel.resultMediatorLiveData.observeAsState()
+    val crawlResult by viewModel.crawlWebResultLiveData.observeAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -81,9 +83,7 @@ fun LinkEditorScreen(
 
     LifecycleResumeEffect(Unit) {
         // Do something on resume or launch effect
-
         onPauseOrDispose {
-            // Do something on pause or dispose effect
         }
     }
 
@@ -105,20 +105,25 @@ fun LinkEditorScreen(
             .background(Color.Transparent)
     ) {
         LinkEditorScreenHeader(
-            link.url,
+            linkId = link.id,
+            url = link.url,
+            isEdit,
             insertResult,
+            crawlResult,
             Modifier.padding(bottom = 8.dp),
-            popNavigation
-        ) {
-            if (validateTitle()) {
-                val link = link.copy(title = title, description = description)
-                if (isEdit) {
-                    viewModel.updateLink(link)
-                } else {
-                    viewModel.insertLink(link)
+            popNavigation,
+            {
+                if (validateTitle()) {
+                    val link = link.copy(title = title, description = description)
+                    if (isEdit) {
+                        viewModel.updateLink(link)
+                    } else {
+                        viewModel.insertLink(link)
+                    }
                 }
-            }
-        }
+            },
+            viewModel::crawlContentHtml
+        )
         TransparentTextField(
             value = title,
             placeholder = "Add a title",
@@ -149,11 +154,15 @@ fun LinkEditorScreen(
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 private fun LinkEditorScreenHeader(
+    linkId: Int,
     url: String,
+    isEdit: Boolean,
     insertResult: ApiResult<Boolean>?,
+    crawlResult: ApiResult<Unit>?,
     modifier: Modifier = Modifier,
     popNavigation: () -> Unit,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    onDownloadResourceClick: (Int, String) -> Unit
 ) {
     val context = LocalContext.current
     val windowSizeClass =
@@ -187,15 +196,13 @@ private fun LinkEditorScreenHeader(
             modifier = Modifier.padding(bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painterResource(R.drawable.download),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(16.dp)
-                    .clickable {
-
-                    }
-            )
+//            if (isEdit) {
+//                DownloadIcon(
+//                    crawlResult,
+//                    { onDownloadResourceClick(linkId, url) },
+//                    Modifier.padding(end = 8.dp)
+//                )
+//            }
 
             Box(
                 Modifier
@@ -237,11 +244,16 @@ private fun LinkEditorScreenHeader(
 @Composable
 fun PreviewLinkEditorScreenHeader() {
     LinkEditorScreenHeader(
+        1,
         "https://www.example.com",
+        false,
+        null,
         null,
         Modifier.padding(16.dp),
-        {}
-    ) {}
+        {},
+        {},
+        {_, _ ->}
+    )
 }
 
 @Composable
@@ -254,23 +266,23 @@ private fun PreviewWebContainer(link: Link, modifier: Modifier = Modifier) {
             link.url,
             modifier.padding(top = 16.dp),
             onUpdate = {
-                when {
-                    link.contentHtml.isNotEmpty() && webViewErrorType == WebViewErrorType.None ->
-                        it.loadDataWithBaseURL(
-                            link.url,
-                            link.contentHtml,
-                            "text/html",
-                            "UTF-8",
-                            null
-                        )
-
-                    link.contentHtml.isEmpty() ||
-                            webViewErrorType == WebViewErrorType.LocalHtmlLoadError -> it.loadUrl(
-                        link.url
-                    )
-
-                    webViewErrorType == WebViewErrorType.RemoteUrlLoadError -> Unit
-                }
+//                when {
+//                    link.contentHtml.isNotEmpty() && webViewErrorType == WebViewErrorType.None ->
+//                        it.loadDataWithBaseURL(
+//                            link.url,
+//                            link.contentHtml,
+//                            "text/html",
+//                            "UTF-8",
+//                            null
+//                        )
+//
+//                    link.contentHtml.isEmpty() ||
+//                            webViewErrorType == WebViewErrorType.LocalHtmlLoadError -> it.loadUrl(
+//                        link.url
+//                    )
+//
+//                    webViewErrorType == WebViewErrorType.RemoteUrlLoadError -> Unit
+//                }
             },
             onError = {
                 when (webViewErrorType) {

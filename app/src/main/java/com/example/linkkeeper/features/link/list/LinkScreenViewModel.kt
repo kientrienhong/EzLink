@@ -22,7 +22,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jsoup.HttpStatusException
 import java.lang.Thread.sleep
+import java.util.Objects
 import javax.inject.Inject
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @HiltViewModel
 class LinkScreenViewModel @Inject constructor(
@@ -90,6 +93,7 @@ class LinkScreenViewModel @Inject constructor(
         localLinkListLiveData.observeForever(linkListObserver)
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     fun validateUrl(
         tagId: Int,
         url: String,
@@ -132,12 +136,12 @@ class LinkScreenViewModel @Inject constructor(
                     }
 
                     val link = Link(
+                        id = Uuid.random().toString(),
                         url = linkRetryStepToUrl,
                         tagId = tagId,
                         iconUrl = iconUrl,
                         title = title,
-                        description = "",
-                        contentHtml = ""
+                        description = ""
                     )
                     ApiResult.Success(link)
                 } else {
