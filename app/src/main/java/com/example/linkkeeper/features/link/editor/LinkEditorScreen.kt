@@ -46,7 +46,6 @@ import com.example.linkkeeper.R
 import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.common.views.MyWebView
 import com.example.linkkeeper.features.common.views.TransparentTextField
-import com.example.linkkeeper.features.link.DownloadIcon
 import com.example.linkkeeper.features.link.data.Link
 
 @Composable
@@ -154,7 +153,7 @@ fun LinkEditorScreen(
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 private fun LinkEditorScreenHeader(
-    linkId: Int,
+    linkId: String,
     url: String,
     isEdit: Boolean,
     insertResult: ApiResult<Boolean>?,
@@ -244,7 +243,7 @@ private fun LinkEditorScreenHeader(
 @Composable
 fun PreviewLinkEditorScreenHeader() {
     LinkEditorScreenHeader(
-        1,
+        "1",
         "https://www.example.com",
         false,
         null,
@@ -252,7 +251,7 @@ fun PreviewLinkEditorScreenHeader() {
         Modifier.padding(16.dp),
         {},
         {},
-        {_, _ ->}
+        { _, _ -> }
     )
 }
 
