@@ -80,12 +80,6 @@ fun LinkEditorScreen(
         }
     }
 
-    LifecycleResumeEffect(Unit) {
-        // Do something on resume or launch effect
-        onPauseOrDispose {
-        }
-    }
-
     LaunchedEffect(insertResult) {
         when (val result = insertResult) {
             is ApiResult.Success,

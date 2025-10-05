@@ -1,112 +1,157 @@
 package com.example.linkkeeper.features.link.list
 
-import android.content.res.Configuration
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.linkkeeper.R
 import com.example.linkkeeper.features.link.data.Link
+import com.example.linkkeeper.ui.theme.LocalCustomColors
+import com.example.linkkeeper.ui.theme.LocalCustomTypography
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun LinkItem(
+internal fun LinkItem(
     link: Link,
     modifier: Modifier = Modifier,
-    onNavigateToEditor: (Link) -> Unit,
-    onLongClick: (Link) -> Unit
+    onEditClick: () -> Unit = {},
+    onOpenClick: () -> Unit = {}
 ) {
-    Card(
-        modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = { onLongClick(link) },
-                    onTap = { onNavigateToEditor(link) }
-                )
-            },
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        )
-    ) {
+    val customColors = LocalCustomColors.current
+    val customTypography = LocalCustomTypography.current
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val readableDate = dateFormat.format(Date(link.dateTimeCreated))
 
-        if (link.iconUrl != null) {
-            GlideImage(
-                model = link.iconUrl,
-                contentDescription = null,
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(BorderStroke(1.dp, customColors.border), RoundedCornerShape(16.dp))
+            .background(customColors.surface)
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                GlideImage(
+                    model = link.iconUrl,
+                    contentDescription = link.title,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = link.title,
+                    style = customTypography.headline,
+                    color = customColors.primary,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Icon(
+                painter = painterResource(R.drawable.edit),
+                contentDescription = "Edit",
+                tint = customColors.subtext,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .aspectRatio(2.5f)
+                    .size(22.dp)
+                    .clickable { onEditClick() }
             )
         }
-        Text(
-            link.url,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(8.dp)
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = customColors.border
         )
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
-            link.title,
-            modifier = Modifier.padding(8.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onBackground
+            text = link.description,
+            style = customTypography.body,
+            color = customColors.subtext,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth()
         )
-        if (link.description.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(32.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                link.description,
-                modifier = Modifier.padding(8.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 3
+                text = readableDate,
+                style = customTypography.caption,
+                color = customColors.subtext
             )
+            Button(
+                onClick = onOpenClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = customColors.background
+                ),
+                shape = RoundedCornerShape(40.dp)
+            ) {
+                Icon(
+                    painterResource(R.drawable.arrow_up_right),
+                    contentDescription = null,
+                    Modifier
+                        .width(18.dp)
+                        .height(20.dp)
+                        .padding(end = 5.dp),
+                    tint = customColors.primary
+                )
+                Text(
+                    text = "Open",
+                    style = customTypography.subhead,
+                    color = customColors.primary
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview
 @Composable
-private fun PreviewLinkItemLightMode() {
+fun LinkItemPreview() {
     LinkItem(
-        Link(
-            "1",
-            1,
-            url = "https://abc.com",
-            iconUrl = "https://logo.clearbit.com/medium.com",
-            title = "Abd.test",
-            description = "asdasdsaddsaaoverflowoverflowoverflow\n\noverflowoverflowoverflowoverflowdasdasdasdasdasdddddddsdasdasddas"
+        link = Link(
+            id = "1",
+            title = "Example Link",
+            url = "https://example.com/image.png",
+            description = "This is a brief description of the example link. It provides an overview of what the link is about.",
+            dateTimeCreated = System.currentTimeMillis(),
+            tagId = "1",
+            iconUrl = null
         ),
-        onNavigateToEditor = {}
-    ) {}
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun PreviewLinkItemDarkMode() {
-    LinkItem(
-        Link(
-            "1",
-            1,
-            url = "https://abc.com",
-            iconUrl = "https://logo.clearbit.com/medium.com",
-            title = "Abd.test",
-            description = "asdasdsaddsaaoverflowoverflowoverflow\n\noverflowoverflowoverflowoverflowdasdasdasdasdasdddddddsdasdasddas"
-        ),
-        onNavigateToEditor = {}
-    ) {}
+        modifier = Modifier.padding(16.dp)
+    )
 }

@@ -31,7 +31,7 @@ import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.tag.data.Tag
 
 @Composable
-fun TagScreen(modifier: Modifier, onTagClick: (Int, String) -> Unit) {
+fun TagScreen(modifier: Modifier, onTagClick: (String, String) -> Unit) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<TagViewModel>()
     val stateFlowTagList by viewModel.tagListLiveData.observeAsState(emptyList())
@@ -84,7 +84,7 @@ private fun TagScreenMainContent(
     stateFlowInitialLoad: ApiResult<Unit>,
     currentSelectedTag: Tag?,
     currentSelectedTagChanged: (Tag?) -> Unit,
-    onTagClick: (Int, String) -> Unit,
+    onTagClick: (String, String) -> Unit,
     onAddButton: () -> Unit,
     onDeleteTag: (Tag) -> Unit
 ) {

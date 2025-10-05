@@ -4,7 +4,12 @@ import androidx.lifecycle.LiveData
 import javax.inject.Inject
 
 class TagRepositoryImpl @Inject constructor(private val tagDao: TagDao) : TagRepository {
-    override fun getTagListLiveData(): LiveData<List<Tag>> = tagDao.getTagListLiveData()
+    override fun getDefaultTagListLiveData(): LiveData<List<Tag>> =
+        tagDao.getDefaultTagListLiveData()
+
+    override fun getUserTagListLiveData(): LiveData<List<Tag>> = tagDao.getUserTagListLiveData()
+
+    override fun getAllTagListLiveData(): LiveData<List<Tag>> = tagDao.getAllTagListLiveData()
 
     override suspend fun getTagList(): List<Tag> = tagDao.getTagList()
 

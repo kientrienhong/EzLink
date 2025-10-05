@@ -1,28 +1,19 @@
 package com.example.linkkeeper.features.link.list
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -30,211 +21,122 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.linkkeeper.R
-import com.example.linkkeeper.features.common.ApiResult
-import com.example.linkkeeper.features.common.views.MyTextField
-import com.example.linkkeeper.features.link.data.Link
-import com.example.linkkeeper.features.tag.view.AddItemBottomSheet
+import com.example.linkkeeper.features.common.linkdialog.LinkModificationDialog
+import com.example.linkkeeper.ui.theme.LocalCustomColors
+import com.example.linkkeeper.ui.theme.LocalCustomTypography
 
 @Composable
-fun LinkScreen(
+fun LinkListScreen(
     modifier: Modifier = Modifier,
-    navigateToLinkEditor: (Link, Boolean) -> Unit,
-    popBackStack: () -> Unit
+    onBackClick: () -> Unit = {},
+    onNavigate: (String) -> Unit = {}
 ) {
-    val context: Context = LocalContext.current
+    val customColors = LocalCustomColors.current
     val viewModel = hiltViewModel<LinkScreenViewModel>()
-    val tagRetrievingResult by viewModel.tagRetrievingResultLiveData.observeAsState()
-    val urlValidationResult by viewModel.linkValidationLiveData.observeAsState()
-    val listLink by viewModel.linkListLiveData.observeAsState()
-    val searchValue by viewModel.searchLiveData.observeAsState()
-    val deleteLinkResult by viewModel.deleteLinkLiveData.observeAsState()
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var currentSelectedLink by remember { mutableStateOf<Link?>(null) }
+    val links by viewModel.linkListLiveData.observeAsState(emptyList())
+    var showAddLinksDialog by remember { mutableStateOf(false) }
+    val allTagListLiveData by viewModel.allTagListLiveData.observeAsState(emptyList())
 
-    LaunchedEffect(Unit) { viewModel.getTagName() }
-
-    LaunchedEffect(urlValidationResult) {
-        val result = urlValidationResult
-        when (result) {
-            is ApiResult.Error -> {
-                Toast.makeText(
-                    context,
-                    result.exception.message,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
-            is ApiResult.Success -> {
-                navigateToLinkEditor(result.data, false /* isEdit */)
-                showBottomSheet = false
-                viewModel.resetLinkValidationLiveData()
-            }
-
-            is ApiResult.Loading,
-            null -> Unit
-        }
-    }
-
-    LaunchedEffect(deleteLinkResult) {
-        val result = deleteLinkResult
-        when (result) {
-            is ApiResult.Error -> {
-                Toast.makeText(
-                    context,
-                    result.exception.message,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
-            is ApiResult.Success -> currentSelectedLink = null
-            is ApiResult.Loading,
-            null -> Unit
-        }
-    }
-
-    when (val tagResult = tagRetrievingResult) {
-        is ApiResult.Success -> Column(modifier.padding(horizontal = 16.dp)) {
-            LinkScreenContent(
-                tagResult.data,
-                listLink,
-                searchValue.orEmpty(),
-                popBackStack,
-                navigateToLinkEditor,
-                viewModel::updateSearch,
-                { showBottomSheet = it },
-                { currentSelectedLink = it }
-            )
-            if (showBottomSheet) {
-                AddItemBottomSheet(
-                    title = "Add url link",
-                    stateCreate = urlValidationResult,
-                    onDismissRequest = { showBottomSheet = false },
-                    onSubmitWithEditTextValue = { viewModel.validateUrl(viewModel.tagId, it) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            if (currentSelectedLink != null) {
-                AlertDialog(
-                    onDismissRequest = { currentSelectedLink = null },
-                    title = { Text("Delete Link") },
-                    text = { Text("Are you sure you want to delete this link?") },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                viewModel.deleteLink(currentSelectedLink ?: return@TextButton)
-                            }
-                        ) {
-                            Text("Delete")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { currentSelectedLink = null }) {
-                            Text("Cancel")
-                        }
-                    }
-                )
-            }
-        }
-
-        is ApiResult.Error -> Text("Error")
-        is ApiResult.Loading,
-        null ->
-            // Shimmer loading
-            Text("Loading")
-    }
-
-}
-
-@SuppressLint("ContextCastToActivity")
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Composable
-private fun ColumnScope.LinkScreenContent(
-    tagName: String?,
-    listLink: List<Link>?,
-    searchValue: String,
-    popBackStack: () -> Unit,
-    onNavigateToEditor: (Link, Boolean) -> Unit,
-    updateSearchValue: (String) -> Unit,
-    updateShowBottomSheet: (Boolean) -> Unit,
-    onLongClickItem: (Link) -> Unit
-) {
-    LinkScreenHeader(
-        tagName = tagName,
-        popBackStack = popBackStack
-    ) { updateShowBottomSheet(it) }
-    MyTextField(searchValue, updateSearchValue, Modifier.padding(bottom = 8.dp))
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(count = 2),
-        contentPadding = PaddingValues(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalItemSpacing = 16.dp,
-        modifier = Modifier.fillMaxWidth()
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(customColors.background)
     ) {
-        if (listLink?.isEmpty() == true) {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                val emptyMessage = if (searchValue.isNotEmpty()) {
-                    "No links found for '$searchValue'. Click the '+' button to create a new link."
-                } else {
-                    "No links found"
-                }
-                Text(
-                    emptyMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        LinkListHeader(
+            tagName = viewModel.tagName,
+            onBackClick = onBackClick
+        )
+        Box(modifier = Modifier.weight(1f)) {
+            ListLinkItem(
+                links = links,
+                allTagListLiveData,
+                onNavigate = onNavigate,
+                modifier = Modifier.fillMaxSize().padding(16.dp)
+            )
         }
-
-        items(listLink?.size ?: 0) {
-            LinkItem(
-                listLink.orEmpty()[it],
-                onNavigateToEditor = { link -> onNavigateToEditor(link, true /* isEdit */) },
-                onLongClick = onLongClickItem
+        BottomNavigationBar(
+            numberOfLink = links.size,
+            onAddLinksClick = { showAddLinksDialog = true }
+        )
+        if (showAddLinksDialog) {
+            LinkModificationDialog(
+                allTagListLiveData,
+                onDismiss = { showAddLinksDialog = false },
+                tagId = viewModel.tagId
             )
         }
     }
 }
 
 @Composable
-private fun LinkScreenHeader(
-    modifier: Modifier = Modifier,
-    tagName: String?,
-    popBackStack: () -> Unit,
-    setShowBottomSheet: (Boolean) -> Unit
+private fun LinkListHeader(
+    tagName: String,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
+    val customColors = LocalCustomColors.current
+    val customTypography = LocalCustomTypography.current
+
     Row(
-        modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painterResource(R.drawable.arrow_left),
-            contentDescription = null,
+        Icon(
+            painter = painterResource(R.drawable.back_arrow),
+            contentDescription = "Back",
+            tint = customColors.primary,
             modifier = Modifier
                 .size(24.dp)
-                .clickable { popBackStack() }
+                .clickable { onBackClick() }
         )
         Text(
-            tagName.orEmpty(),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary
+            text = tagName,
+            style = customTypography.body,
+            color = customColors.text
+        )
+        Icon(
+            painter = painterResource(R.drawable.ellipsis_circle),
+            contentDescription = "Header action",
+            tint = customColors.primary,
+            modifier = Modifier
+                .size(width = 26.dp, height = 22.dp)
+                .clickable { }
+        )
+    }
+}
+
+@Composable
+private fun BottomNavigationBar(
+    numberOfLink: Int,
+    onAddLinksClick: () -> Unit
+) {
+    val textLink = if (numberOfLink > 1) "links" else "link"
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(modifier = Modifier.size(50.dp)) { }
+        Text(
+            "$numberOfLink $textLink",
+            style = LocalCustomTypography.current.caption,
+            color = LocalCustomColors.current.subtext
         )
         Image(
-            painterResource(R.drawable.plus_icon),
-            contentDescription = null,
+            painter = painterResource(R.drawable.link_add),
+            contentDescription = "Add Links",
             modifier = Modifier
-                .size(24.dp)
-                .clickable { setShowBottomSheet(true) }
+                .size(50.dp)
+                .clickable { onAddLinksClick() }
         )
     }
 }

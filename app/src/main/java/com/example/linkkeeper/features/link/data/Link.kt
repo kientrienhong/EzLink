@@ -3,6 +3,7 @@ package com.example.linkkeeper.features.link.data
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
 import com.example.linkkeeper.features.tag.data.Tag
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -19,10 +20,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Parcelize
 data class Link(
+    @PrimaryKey
     val id: String,
-    val tagId: Int,
+    val tagId: String,
     val url: String,
     val iconUrl: String?,
     val title: String,
-    val description: String
+    val description: String,
+    val dateTimeCreated: Long
 ) : Parcelable

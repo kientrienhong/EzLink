@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.example.linkkeeper.features.common.views.GrayLogoWithTextView
 import com.example.linkkeeper.features.link.data.Link
 import com.example.linkkeeper.features.link.editor.LinkEditorScreen
-import com.example.linkkeeper.features.link.list.LinkScreen
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -40,15 +39,15 @@ fun LinkScreen(popBack: () -> Unit, modifier: Modifier = Modifier) {
         listPane = {
             AnimatedPane(modifier = modifier) {
                 LinkScreen(
-                    navigateToLinkEditor = { link, isEdit ->
-                        scope.launch {
-                            scaffoldNavigator.navigateTo(
-                                ListDetailPaneScaffoldRole.Detail,
-                                LinkEditorScreenArgs(link = link, isEdit = isEdit)
-                            )
-                        }
-                    },
-                    popBackStack = popBack
+//                    navigateToLinkEditor = { link, isEdit ->
+//                        scope.launch {
+//                            scaffoldNavigator.navigateTo(
+//                                ListDetailPaneScaffoldRole.Detail,
+//                                LinkEditorScreenArgs(link = link, isEdit = isEdit)
+//                            )
+//                        }
+//                    },
+                    popBack = popBack,
                 )
             }
         },

@@ -1,4 +1,4 @@
-package com.example.linkkeeper.features.tag.view
+package com.example.linkkeeper.features.home.view
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,43 +7,28 @@ import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.common.runBlocking
+import com.example.linkkeeper.features.link.LinkUrlHelper
+import com.example.linkkeeper.features.link.data.Link
+import com.example.linkkeeper.features.link.data.LinkRepository
 import com.example.linkkeeper.features.tag.data.Tag
 import com.example.linkkeeper.features.tag.data.TagRepository
+import com.example.linkkeeper.features.tag.view.TagViewItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class TagViewModel @Inject constructor(private val repository: TagRepository) : ViewModel() {
-    val tagListLiveData: LiveData<List<TagViewItem>> = repository.getUserTagListLiveData().switchMap {
-        val tagList = it.map { tag -> tag.toTagViewItem() }
-        MutableLiveData(tagList)
-    }
-    private val initialLoadMutableLiveData: MutableLiveData<ApiResult<Unit>> =
-        MutableLiveData<ApiResult<Unit>>()
-    val initialLoadLiveData: LiveData<ApiResult<Unit>> = initialLoadMutableLiveData
+class HomeViewModel @Inject constructor(private val tagRepository: TagRepository) : ViewModel() {
+    val allTagListLiveData: LiveData<List<TagViewItem>> =
+        tagRepository.getAllTagListLiveData().switchMap {
+            val tagList = it.map { tag -> tag.toTagViewItem() }
+            MutableLiveData(tagList)
+        }
     private val createTagMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
     val createTagLiveData: LiveData<ApiResult<Boolean>> = createTagMutableLiveData
     private val deleteTagMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
     val deleteTagLiveData: LiveData<ApiResult<Boolean>> = deleteTagMutableLiveData
-
-    init {
-        getTagList()
-    }
-
-    private fun getTagList() {
-        viewModelScope.launch {
-            if (initialLoadMutableLiveData.value is ApiResult.Loading) {
-                return@launch
-            }
-            initialLoadMutableLiveData.value = ApiResult.Loading()
-            initialLoadMutableLiveData.value = runBlocking(
-                onBlocking = { repository.getTagList() },
-                onSuccess = { ApiResult.Success(Unit) },
-                onError = { ApiResult.Error(it) }
-            )
-        }
-    }
 
     fun createTag(name: String) {
         viewModelScope.launch {
@@ -53,11 +38,23 @@ class TagViewModel @Inject constructor(private val repository: TagRepository) : 
             createTagMutableLiveData.value = ApiResult.Loading()
             createTagMutableLiveData.value = runBlocking(
                 onBlocking = {
-                    val tag = Tag(id = "", name = name)
-                    repository.createTag(tag)
+                    if (name.isBlank()) {
+                        throw IllegalArgumentException(MESSAGE_EMPTY_TAG)
+                    }
+
+                    val tag = Tag(id = UUID.randomUUID().toString(), name = name)
+                    tagRepository.createTag(tag)
                 },
                 onSuccess = { ApiResult.Success(it) },
-                onError = { ApiResult.Error(it) }
+                onError = {
+                    if (it.message == MESSAGE_EMPTY_TAG) {
+                        ApiResult.Error(it)
+                    } else {
+                        ApiResult.Error(
+                            Exception("Failed to create tag! Please try again later.")
+                        )
+                    }
+                }
             )
         }
     }
@@ -69,14 +66,14 @@ class TagViewModel @Inject constructor(private val repository: TagRepository) : 
             }
             deleteTagMutableLiveData.value = ApiResult.Loading()
             deleteTagMutableLiveData.value = runBlocking(
-                onBlocking = { repository.deleteTag(tag) },
+                onBlocking = { tagRepository.deleteTag(tag) },
                 onSuccess = { ApiResult.Success(it) },
                 onError = { ApiResult.Error(it) }
             )
         }
     }
-    private fun Tag.toTagViewItem(): TagViewItem {
-        val iconResource = TagIconResourceProvider.getIconResourceFromTag(this)
-        return TagViewItem(this, iconResource)
+
+    private companion object {
+        const val MESSAGE_EMPTY_TAG = "Tag name cannot be empty"
     }
 }

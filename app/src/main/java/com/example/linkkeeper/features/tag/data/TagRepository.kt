@@ -1,9 +1,17 @@
 package com.example.linkkeeper.features.tag.data
 
 import androidx.lifecycle.LiveData
+import androidx.room.Query
 
 interface TagRepository {
-    fun getTagListLiveData(): LiveData<List<Tag>>
+
+    @Query("SELECT * FROM tag WHERE isDefaultCreated = 1")
+    fun getDefaultTagListLiveData(): LiveData<List<Tag>>
+
+    @Query("SELECT * FROM tag WHERE isDefaultCreated = 0")
+    fun getUserTagListLiveData(): LiveData<List<Tag>>
+
+    fun getAllTagListLiveData(): LiveData<List<Tag>>
 
     suspend fun getTagList(): List<Tag>
 

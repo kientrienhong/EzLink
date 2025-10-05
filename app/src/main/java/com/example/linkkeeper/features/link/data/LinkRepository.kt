@@ -4,11 +4,11 @@ import androidx.lifecycle.LiveData
 import com.example.linkkeeper.features.tag.data.Tag
 
 interface LinkRepository {
-    suspend fun getTag(id: Int): Tag
+    suspend fun getTag(id: String): Tag
 
-    fun getLinkListLiveData(tagId: Int): LiveData<List<Link>>
+    fun getLinkListLiveData(tagId: String): LiveData<List<Link>>
 
-    fun getAllLink(tagId: Int): List<Link>
+    fun getAllLink(tagId: String): List<Link>
 
     suspend fun insertLink(link: Link): Boolean
 

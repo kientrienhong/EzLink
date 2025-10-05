@@ -17,7 +17,7 @@ import com.example.linkkeeper.features.tag.data.Tag
 fun ListTagItem(
     stateFlowTagList: List<TagViewItem>,
     stateFlowInitialLoad: ApiResult<Unit>,
-    onTagClick: (Int, String) -> Unit,
+    onTagClick: (String, String) -> Unit,
     onLongClick: (Tag) -> Unit
 ) {
     when (stateFlowInitialLoad) {

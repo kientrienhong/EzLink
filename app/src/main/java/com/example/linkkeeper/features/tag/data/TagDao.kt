@@ -18,7 +18,25 @@ abstract class TagDao {
     abstract suspend fun getTagList(): List<Tag>
 
     @Query("SELECT * from tag where id = :id")
-    abstract suspend fun getTag(id: Int): Tag
+    abstract suspend fun getTag(id: String): Tag
+
+    @Query(
+        """
+        SELECT *, (SELECT count(tagId) from link where link.tagId = tag.id) as amountOfLink
+        FROM tag
+        WHERE isDefaultCreated = 1
+    """
+    )
+    abstract fun getDefaultTagListLiveData(): LiveData<List<Tag>>
+
+    @Query(
+        """
+        SELECT *, (SELECT count(tagId) from link where link.tagId = tag.id) as amountOfLink
+        FROM tag
+        WHERE isDefaultCreated = 0
+    """
+    )
+    abstract fun getUserTagListLiveData(): LiveData<List<Tag>>
 
     @Query(
         """
@@ -26,7 +44,7 @@ abstract class TagDao {
         FROM tag
     """
     )
-    abstract fun getTagListLiveData(): LiveData<List<Tag>>
+    abstract fun getAllTagListLiveData(): LiveData<List<Tag>>
 
     @Insert
     abstract suspend fun insertTag(tag: Tag): Long
