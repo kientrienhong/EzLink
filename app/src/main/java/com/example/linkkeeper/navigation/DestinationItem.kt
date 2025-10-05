@@ -9,9 +9,6 @@ sealed class DestinationItem
 data object HomeNavigation : DestinationItem()
 
 @Serializable
-data object SplashDestination : DestinationItem()
-
-@Serializable
 data object TagNavigation : DestinationItem()
 
 @Serializable
@@ -22,11 +19,3 @@ data object SearchNavigation : DestinationItem()
 
 @Serializable
 data class LinkDestination(val tagId: String, val tagName: String?) : DestinationItem()
-
-@Serializable
-data class LinkEditorDestination(
-    val tagId: Int,
-    val tagName: String?,
-    val linkString: String,
-    val isEdit: Boolean
-) : DestinationItem()
