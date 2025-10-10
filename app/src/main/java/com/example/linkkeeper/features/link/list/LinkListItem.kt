@@ -19,7 +19,7 @@ import com.example.linkkeeper.features.tag.view.TagViewItem
 fun ListLinkItem(
     links: List<Link>,
     allTagList: List<TagViewItem>,
-    onNavigate: (String) -> Unit,
+    onNavigate: (Link) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showAddLinkDialog by remember { mutableStateOf(false) }
@@ -37,7 +37,7 @@ fun ListLinkItem(
                     selectedLink = link
                     showAddLinkDialog = true
                 },
-                onOpenClick = { onNavigate(link.url) }
+                onOpenClick = { onNavigate(link) }
             )
         }
     }

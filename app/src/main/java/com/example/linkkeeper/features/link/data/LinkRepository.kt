@@ -1,6 +1,7 @@
 package com.example.linkkeeper.features.link.data
 
 import androidx.lifecycle.LiveData
+import com.example.linkkeeper.features.contentHtml.ContentHtml
 import com.example.linkkeeper.features.tag.data.Tag
 
 interface LinkRepository {
@@ -25,9 +26,9 @@ interface LinkRepository {
 
     suspend fun deleteContentHtml(contentHtml: ContentHtml): Boolean
 
-    suspend fun getContentHtml(linkId: Int): ContentHtml?
+    suspend fun getContentHtml(linkId: String): ContentHtml?
 
-    fun getContentHtmlLiveData(linkId: Int): LiveData<ContentHtml?>
+    fun getContentHtmlLiveData(linkId: String): LiveData<ContentHtml?>
 
-    suspend fun deleteContentHtmlByLinkId(linkId: Int): Boolean
+    suspend fun deleteContentHtmlByLinkId(linkId: String): Boolean
 }

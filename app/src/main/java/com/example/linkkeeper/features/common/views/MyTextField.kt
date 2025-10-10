@@ -52,11 +52,17 @@ fun MyTextField(
                 unfocusedContainerColor = containerColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
+                disabledContainerColor = containerColor,
+                disabledIndicatorColor = containerColor
             ),
             shape = RoundedCornerShape(10.dp),
-            textStyle = customTypography.body.copy(color = customColors.text),
+            textStyle = customTypography.body.copy(
+                color = if (enable) {
+                    customColors.text
+                } else {
+                    customColors.textPlaceholder
+                }
+            ),
             minLines = minLines,
             enabled = enable
         )

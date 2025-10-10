@@ -1,6 +1,8 @@
 package com.example.linkkeeper.features.link.data
 
 import androidx.lifecycle.LiveData
+import com.example.linkkeeper.features.contentHtml.ContentHtml
+import com.example.linkkeeper.features.contentHtml.ContentHtmlDao
 import com.example.linkkeeper.features.tag.data.Tag
 import com.example.linkkeeper.features.tag.data.TagDao
 import javax.inject.Inject
@@ -35,12 +37,12 @@ class LinkRepositoryImpl @Inject constructor(
     override suspend fun deleteContentHtml(contentHtml: ContentHtml): Boolean =
         contentHtmlDao.deleteContentHtml(contentHtml) > 0
 
-    override suspend fun getContentHtml(linkId: Int): ContentHtml? =
+    override suspend fun getContentHtml(linkId: String): ContentHtml? =
         contentHtmlDao.getContentHtml(linkId)
 
-    override fun getContentHtmlLiveData(linkId: Int): LiveData<ContentHtml?> =
+    override fun getContentHtmlLiveData(linkId: String): LiveData<ContentHtml?> =
         contentHtmlDao.getContentHtmlLiveData(linkId)
 
-    override suspend fun deleteContentHtmlByLinkId(linkId: Int): Boolean =
+    override suspend fun deleteContentHtmlByLinkId(linkId: String): Boolean =
         contentHtmlDao.deleteContentHtmlByLinkId(linkId) > 0
 }

@@ -30,6 +30,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.linkkeeper.R
 import com.example.linkkeeper.features.link.data.Link
+import com.example.linkkeeper.ui.theme.LinkKeeperTheme
 import com.example.linkkeeper.ui.theme.LocalCustomColors
 import com.example.linkkeeper.ui.theme.LocalCustomTypography
 import java.text.SimpleDateFormat
@@ -52,8 +53,8 @@ internal fun LinkItem(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .border(BorderStroke(1.dp, customColors.border), RoundedCornerShape(16.dp))
             .background(customColors.surface)
+            .border(BorderStroke(1.dp, customColors.border), RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Row(
@@ -142,16 +143,18 @@ internal fun LinkItem(
 @Preview
 @Composable
 fun LinkItemPreview() {
-    LinkItem(
-        link = Link(
-            id = "1",
-            title = "Example Link",
-            url = "https://example.com/image.png",
-            description = "This is a brief description of the example link. It provides an overview of what the link is about.",
-            dateTimeCreated = System.currentTimeMillis(),
-            tagId = "1",
-            iconUrl = null
-        ),
-        modifier = Modifier.padding(16.dp)
-    )
+    LinkKeeperTheme {
+        LinkItem(
+            link = Link(
+                id = "1",
+                title = "Example Link",
+                url = "https://example.com/image.png",
+                description = "This is a brief description of the example link. It provides an overview of what the link is about.",
+                dateTimeCreated = System.currentTimeMillis(),
+                tagId = "1",
+                iconUrl = null
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
+    }
 }

@@ -19,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.linkkeeper.features.common.views.GrayLogoWithTextView
 import com.example.linkkeeper.features.link.data.Link
-import com.example.linkkeeper.features.link.editor.LinkEditorScreen
-import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -70,19 +68,6 @@ fun LinkScreen(popBack: () -> Unit, modifier: Modifier = Modifier) {
                     scaffoldNavigator.currentDestination?.contentKey ?: return@AnimatedPane
                 val link = selectedItem.link
                 val isEdit = selectedItem.isEdit
-                LinkEditorScreen(
-                    link,
-                    isEdit,
-                    popNavigation = {
-                        if (scaffoldNavigator.currentDestination?.pane == ListDetailPaneScaffoldRole.Detail) {
-                            scope.launch {
-                                scaffoldNavigator.navigateBack()
-                            }
-                        } else {
-                            popBack()
-                        }
-                    }
-                )
             }
         },
         defaultBackBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange

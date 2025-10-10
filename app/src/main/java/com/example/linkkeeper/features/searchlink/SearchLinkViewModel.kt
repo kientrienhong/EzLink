@@ -1,4 +1,4 @@
-package com.example.linkkeeper.features.search
+package com.example.linkkeeper.features.searchlink
 
 import android.util.Log
 import androidx.lifecycle.LiveData

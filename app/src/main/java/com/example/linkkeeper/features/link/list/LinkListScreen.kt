@@ -26,14 +26,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.linkkeeper.R
 import com.example.linkkeeper.features.common.linkdialog.LinkModificationDialog
+import com.example.linkkeeper.features.common.views.Header
+import com.example.linkkeeper.features.link.data.Link
 import com.example.linkkeeper.ui.theme.LocalCustomColors
 import com.example.linkkeeper.ui.theme.LocalCustomTypography
 
 @Composable
 fun LinkListScreen(
     modifier: Modifier = Modifier,
+    navigateToDetailLink: (Link) -> Unit,
     onBackClick: () -> Unit = {},
-    onNavigate: (String) -> Unit = {}
 ) {
     val customColors = LocalCustomColors.current
     val viewModel = hiltViewModel<LinkScreenViewModel>()
@@ -46,16 +48,37 @@ fun LinkListScreen(
             .fillMaxSize()
             .background(customColors.background)
     ) {
-        LinkListHeader(
-            tagName = viewModel.tagName,
-            onBackClick = onBackClick
+        Header(
+            viewModel.tagName,
+            leftIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.back_arrow),
+                    contentDescription = "Back",
+                    tint = customColors.primary,
+                    modifier = Modifier
+                        .size(14.dp)
+                        .clickable { onBackClick() }
+                )
+            },
+            rightIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.ellipsis_circle),
+                    contentDescription = "Header action",
+                    tint = customColors.primary,
+                    modifier = Modifier
+                        .size(width = 26.dp, height = 22.dp)
+                        .clickable { }
+                )
+            }
         )
         Box(modifier = Modifier.weight(1f)) {
             ListLinkItem(
                 links = links,
                 allTagListLiveData,
-                onNavigate = onNavigate,
-                modifier = Modifier.fillMaxSize().padding(16.dp)
+                onNavigate = navigateToDetailLink,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             )
         }
         BottomNavigationBar(
@@ -69,46 +92,6 @@ fun LinkListScreen(
                 tagId = viewModel.tagId
             )
         }
-    }
-}
-
-@Composable
-private fun LinkListHeader(
-    tagName: String,
-    onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val customColors = LocalCustomColors.current
-    val customTypography = LocalCustomTypography.current
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.back_arrow),
-            contentDescription = "Back",
-            tint = customColors.primary,
-            modifier = Modifier
-                .size(24.dp)
-                .clickable { onBackClick() }
-        )
-        Text(
-            text = tagName,
-            style = customTypography.body,
-            color = customColors.text
-        )
-        Icon(
-            painter = painterResource(R.drawable.ellipsis_circle),
-            contentDescription = "Header action",
-            tint = customColors.primary,
-            modifier = Modifier
-                .size(width = 26.dp, height = 22.dp)
-                .clickable { }
-        )
     }
 }
 

@@ -33,6 +33,7 @@ fun MyDropdown(
 ) {
     val customColors = LocalCustomColors.current
     var expanded by remember { mutableStateOf(false) }
+    var textSearch by remember { mutableStateOf(value) }
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = {
@@ -45,8 +46,8 @@ fun MyDropdown(
     ) {
         MyTextField(
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable, true),
-            onChange = onChangeValue,
-            value = value,
+            onChange = { textSearch = it },
+            value = textSearch,
             placeholder = { Text(text = "Favorites") },
             trailingIcon = {
                 val (resource, contentDescription) = if (expanded) {
@@ -64,7 +65,7 @@ fun MyDropdown(
             enable = enable
         )
 
-        val filteringOptions = options.filter { it.contains(value, ignoreCase = true) }
+        val filteringOptions = options.filter { it.contains(textSearch, ignoreCase = true) }
         if (filteringOptions.isNotEmpty()) {
             DropdownMenu(
                 modifier = Modifier
@@ -79,6 +80,7 @@ fun MyDropdown(
                         text = { Text(selectionOption) },
                         onClick = {
                             onChangeValue(selectionOption)
+                            textSearch = selectionOption
                             expanded = false
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,

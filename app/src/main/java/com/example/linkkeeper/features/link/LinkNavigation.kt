@@ -5,6 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import com.example.linkkeeper.features.link.detail.navigateToDetailLink
 import com.example.linkkeeper.features.link.list.LinkListScreen
 import com.example.linkkeeper.navigation.LinkDestination
 
@@ -14,6 +15,6 @@ fun NavController.navigateToLink(tagId: String, tagName: String?, navOptions: Na
 
 fun NavGraphBuilder.linkGraph(navController: NavController, modifier: Modifier) {
     composable<LinkDestination> {
-        LinkListScreen(modifier, navController::popBackStack)
+        LinkListScreen(modifier, navController::navigateToDetailLink, navController::popBackStack)
     }
 }

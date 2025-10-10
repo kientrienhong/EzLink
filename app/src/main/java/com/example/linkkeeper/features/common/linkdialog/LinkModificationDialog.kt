@@ -14,6 +14,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -32,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.common.views.MyDropdown
 import com.example.linkkeeper.features.common.views.MyTextField
+import com.example.linkkeeper.features.link.LinkUrlHelper
 import com.example.linkkeeper.features.link.data.Link
 import com.example.linkkeeper.features.tag.view.TagViewItem
 import com.example.linkkeeper.ui.theme.LocalCustomColors
@@ -74,24 +76,26 @@ internal fun LinkModificationDialog(
                 onDismiss()
             }
 
-            is ApiResult.Error -> {
+            is ApiResult.Error ->
                 Toast.makeText(context, localResult.exception.message, Toast.LENGTH_SHORT).show()
-            }
 
             else -> Unit
         }
     }
 
+    DisposableEffect(Unit) {
+        onDispose { viewModel.reset() }
+    }
+
     fun createLink() {
-        val tagId =
-            listAllTags.firstOrNull { it.tag.name == selectedTagName }?.tag?.id
-                ?: return
+        val tagId = listAllTags.firstOrNull { it.tag.name == selectedTagName }?.tag?.id ?: return
+        val iconUrl = "${LinkUrlHelper.getDomain(url)}/favicon.ico"
         val linkWithoutIconUrl = Link(
             id = UUID.randomUUID().toString(),
             tagId = tagId,
             url = url,
             title = title,
-            iconUrl = null,
+            iconUrl = iconUrl,
             description = notes,
             dateTimeCreated = System.currentTimeMillis()
         )
@@ -142,7 +146,7 @@ internal fun LinkModificationDialog(
                         Text(
                             "https://example.com",
                             style = customTypography.body,
-                            color = customColors.subtext
+                            color = customColors.textPlaceholder
                         )
                     },
                     label = "URL",
@@ -157,7 +161,7 @@ internal fun LinkModificationDialog(
                         Text(
                             "Link title",
                             style = customTypography.body,
-                            color = customColors.subtext
+                            color = customColors.textPlaceholder
                         )
                     },
                     label = "TITLE",
@@ -172,7 +176,7 @@ internal fun LinkModificationDialog(
                         Text(
                             "Brief some notes of the link here",
                             style = customTypography.body,
-                            color = customColors.subtext
+                            color = customColors.textPlaceholder
                         )
                     },
                     singleLine = false,

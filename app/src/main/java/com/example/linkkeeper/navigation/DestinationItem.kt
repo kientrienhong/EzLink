@@ -19,3 +19,6 @@ data object SearchNavigation : DestinationItem()
 
 @Serializable
 data class LinkDestination(val tagId: String, val tagName: String?) : DestinationItem()
+
+@Serializable
+data class DetailLinkDestination(val linkJsonString: String) : DestinationItem()

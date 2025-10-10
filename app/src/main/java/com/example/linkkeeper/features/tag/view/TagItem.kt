@@ -1,6 +1,5 @@
 package com.example.linkkeeper.features.tag.view
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.linkkeeper.R
 import com.example.linkkeeper.features.tag.data.Tag
+import com.example.linkkeeper.ui.theme.LocalCustomColors
 
 @Composable
 fun TagItem(
@@ -30,6 +31,7 @@ fun TagItem(
     onLongClick: (Tag) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val customColors = LocalCustomColors.current
     Row(
         modifier
             .padding(bottom = 16.dp)
@@ -61,13 +63,14 @@ fun TagItem(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
         }
-        Image(
+        Icon(
             painterResource(R.drawable.arrow_right),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .size(32.dp)
-                .padding(end = 8.dp)
+                .padding(end = 8.dp),
+            tint = customColors.textPlaceholder
         )
     }
 }

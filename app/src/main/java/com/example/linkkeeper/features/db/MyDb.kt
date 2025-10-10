@@ -2,8 +2,8 @@ package com.example.linkkeeper.features.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.example.linkkeeper.features.link.data.ContentHtml
-import com.example.linkkeeper.features.link.data.ContentHtmlDao
+import com.example.linkkeeper.features.contentHtml.ContentHtml
+import com.example.linkkeeper.features.contentHtml.ContentHtmlDao
 import com.example.linkkeeper.features.link.data.Link
 import com.example.linkkeeper.features.link.data.LinkDao
 import com.example.linkkeeper.features.link.data.LinkFts

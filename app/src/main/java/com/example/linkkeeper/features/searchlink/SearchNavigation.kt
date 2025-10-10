@@ -1,4 +1,4 @@
-package com.example.linkkeeper.features.search
+package com.example.linkkeeper.features.searchlink
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
