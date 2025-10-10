@@ -1,6 +1,5 @@
 package com.example.linkkeeper.features.link
 
-import android.util.Log
 import org.jsoup.Jsoup
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -32,7 +31,6 @@ object LinkUrlHelper {
         }
         sb.toString()
     } catch (e: Exception) {
-        Log.e("LinkUrlHelper", "crawlData: $e")
         e.printStackTrace()
         null
     }

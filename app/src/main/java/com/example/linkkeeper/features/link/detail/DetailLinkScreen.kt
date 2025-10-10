@@ -205,6 +205,7 @@ fun DetailLinkScreen(modifier: Modifier = Modifier, onBackClick: () -> Unit = {}
             verticalAlignment = Alignment.CenterVertically
         ) {
             when (hasContentHtml) {
+                ContentHtmlStatus.NotSupported,
                 ContentHtmlStatus.NotDownloaded -> Image(
                     painter = painterResource(R.drawable.download),
                     contentDescription = "Download content",
@@ -222,8 +223,6 @@ fun DetailLinkScreen(modifier: Modifier = Modifier, onBackClick: () -> Unit = {}
                 )
 
                 ContentHtmlStatus.Downloading -> CircularProgressIndicator()
-
-                ContentHtmlStatus.NotSupported -> Text("Link is not supported")
             }
 
             if (hasContentHtml == ContentHtmlStatus.Available) {

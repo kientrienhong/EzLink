@@ -152,6 +152,7 @@ fun LinkItemPreview() {
                 description = "This is a brief description of the example link. It provides an overview of what the link is about.",
                 dateTimeCreated = System.currentTimeMillis(),
                 tagId = "1",
+                tagName = "",
                 iconUrl = null
             ),
             modifier = Modifier.padding(16.dp)

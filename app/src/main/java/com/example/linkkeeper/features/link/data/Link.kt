@@ -23,6 +23,7 @@ data class Link(
     @PrimaryKey
     val id: String,
     val tagId: String,
+    val tagName: String,
     val url: String,
     val iconUrl: String?,
     val title: String,

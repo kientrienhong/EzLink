@@ -33,7 +33,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.linkkeeper.features.common.ApiResult
 import com.example.linkkeeper.features.common.views.MyDropdown
 import com.example.linkkeeper.features.common.views.MyTextField
-import com.example.linkkeeper.features.link.LinkUrlHelper
 import com.example.linkkeeper.features.link.data.Link
 import com.example.linkkeeper.features.tag.view.TagViewItem
 import com.example.linkkeeper.ui.theme.LocalCustomColors
@@ -89,13 +88,13 @@ internal fun LinkModificationDialog(
 
     fun createLink() {
         val tagId = listAllTags.firstOrNull { it.tag.name == selectedTagName }?.tag?.id ?: return
-        val iconUrl = "${LinkUrlHelper.getDomain(url)}/favicon.ico"
         val linkWithoutIconUrl = Link(
             id = UUID.randomUUID().toString(),
             tagId = tagId,
+            tagName = selectedTagName,
             url = url,
             title = title,
-            iconUrl = iconUrl,
+            iconUrl = null,
             description = notes,
             dateTimeCreated = System.currentTimeMillis()
         )

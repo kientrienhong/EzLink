@@ -49,10 +49,8 @@ class DetailLinkScreenViewModel @Inject constructor(
     val title: LiveData<String> = titleMutableLiveData
     private val notesMutableLiveData = MutableLiveData(link.description)
     val notes: LiveData<String> = notesMutableLiveData
-    private val selectedTagIdMutableLiveData = MutableLiveData(
-        allTagListLiveData.value?.firstOrNull { it.tag.id == link.tagId }?.tag?.name.orEmpty()
-    )
-    val selectedTagName: LiveData<String> = selectedTagIdMutableLiveData
+    private val selectedTagNameMutableLiveData = MutableLiveData(link.tagName)
+    val selectedTagName: LiveData<String> = selectedTagNameMutableLiveData
 
     private val hasChangesMutableLiveData = MediatorLiveData(false)
     val hasChanges: LiveData<Boolean> = hasChangesMutableLiveData
@@ -73,7 +71,7 @@ class DetailLinkScreenViewModel @Inject constructor(
     init {
         hasChangesMutableLiveData.addSource(titleMutableLiveData) { checkForChanges() }
         hasChangesMutableLiveData.addSource(notesMutableLiveData) { checkForChanges() }
-        hasChangesMutableLiveData.addSource(selectedTagIdMutableLiveData) { checkForChanges() }
+        hasChangesMutableLiveData.addSource(selectedTagNameMutableLiveData) { checkForChanges() }
 
         contentStatus.addSource(contentHtmlLiveData) { contentHtml ->
             val status = when {
@@ -103,13 +101,13 @@ class DetailLinkScreenViewModel @Inject constructor(
     }
 
     fun setSelectedTagName(tagName: String) {
-        selectedTagIdMutableLiveData.value = tagName
+        selectedTagNameMutableLiveData.value = tagName
     }
 
     private fun checkForChanges() {
         val currentTitle = titleMutableLiveData.value ?: ""
         val currentNotes = notesMutableLiveData.value ?: ""
-        val currentSelectedTagId = selectedTagIdMutableLiveData.value ?: ""
+        val currentSelectedTagId = selectedTagNameMutableLiveData.value ?: ""
         val hasChanged = currentTitle != originalTitle ||
                 currentNotes != originalNotes ||
                 currentSelectedTagId != originalSelectedTagId

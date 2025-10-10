@@ -4,13 +4,11 @@ import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.example.linkkeeper.features.common.ApiResult
-import com.example.linkkeeper.features.common.debounce
 import com.example.linkkeeper.features.common.runBlocking
 import com.example.linkkeeper.features.link.LinkRetryStep
 import com.example.linkkeeper.features.link.LinkUrlHelper
@@ -21,7 +19,6 @@ import com.example.linkkeeper.features.tag.view.TagViewItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jsoup.HttpStatusException
 import java.lang.Thread.sleep
 import javax.inject.Inject
@@ -101,6 +98,7 @@ class LinkScreenViewModel @Inject constructor(
                         id = Uuid.random().toString(),
                         url = linkRetryStepToUrl,
                         tagId = "tagId",
+                        tagName = "tagName",
                         iconUrl = iconUrl,
                         title = title,
                         description = "",
