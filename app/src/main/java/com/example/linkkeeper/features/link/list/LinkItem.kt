@@ -28,6 +28,14 @@ fun LinkItem(
     onNavigateToEditor: (Link) -> Unit,
     onLongClick: (Link) -> Unit
 ) {
+    val title = link.title.ifEmpty {
+        "(No title)"
+    }
+
+    val description = link.description.ifEmpty {
+        "(No description)"
+    }
+
     Card(
         modifier
             .fillMaxWidth()
@@ -61,21 +69,19 @@ fun LinkItem(
             modifier = Modifier.padding(8.dp)
         )
         Text(
-            link.title,
+            title,
             modifier = Modifier.padding(8.dp),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
-        if (link.description.isNotEmpty()) {
-            Text(
-                link.description,
-                modifier = Modifier.padding(8.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 3
-            )
-        }
+        Text(
+            description,
+            modifier = Modifier.padding(8.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 3
+        )
     }
 }
 
@@ -84,7 +90,7 @@ fun LinkItem(
 private fun PreviewLinkItemLightMode() {
     LinkItem(
         Link(
-            "1",
+            1,
             1,
             url = "https://abc.com",
             iconUrl = "https://logo.clearbit.com/medium.com",
@@ -100,7 +106,7 @@ private fun PreviewLinkItemLightMode() {
 private fun PreviewLinkItemDarkMode() {
     LinkItem(
         Link(
-            "1",
+            2,
             1,
             url = "https://abc.com",
             iconUrl = "https://logo.clearbit.com/medium.com",

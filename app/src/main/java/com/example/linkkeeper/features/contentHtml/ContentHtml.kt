@@ -1,8 +1,9 @@
-package com.example.linkkeeper.features.link.data
+package com.example.linkkeeper.features.contentHtml
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.example.linkkeeper.features.link.data.Link
 
 @Entity(
     tableName = "content_html",

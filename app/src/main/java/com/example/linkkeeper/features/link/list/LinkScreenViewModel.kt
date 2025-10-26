@@ -22,10 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jsoup.HttpStatusException
 import java.lang.Thread.sleep
-import java.util.Objects
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @HiltViewModel
 class LinkScreenViewModel @Inject constructor(
@@ -46,7 +44,6 @@ class LinkScreenViewModel @Inject constructor(
 
     private val linkValidationMutableLiveData: MutableLiveData<ApiResult<Link>?> =
         MutableLiveData()
-    val linkValidationLiveData: LiveData<ApiResult<Link>?> = linkValidationMutableLiveData
 
     private val listLinkMediatorLiveData: MutableLiveData<List<Link>> = MediatorLiveData()
     val linkListLiveData: LiveData<List<Link>> = listLinkMediatorLiveData
@@ -55,6 +52,10 @@ class LinkScreenViewModel @Inject constructor(
     private val deleteLinkMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
 
     val deleteLinkLiveData: LiveData<ApiResult<Boolean>> = deleteLinkMutableLiveData
+
+    private val createLinkMutableLiveData: MediatorLiveData<ApiResult<Boolean>?> =
+        MediatorLiveData()
+    val createLinkLiveData: LiveData<ApiResult<Boolean>?> = createLinkMutableLiveData
 
     private val linkListObserver: Observer<List<Link>> = Observer {
         viewModelScope.launch {
@@ -91,17 +92,44 @@ class LinkScreenViewModel @Inject constructor(
     init {
         searchLiveData.observeForever(searchObserver)
         localLinkListLiveData.observeForever(linkListObserver)
+        createLinkMutableLiveData.addSource(linkValidationMutableLiveData) { apiResult ->
+            when (apiResult) {
+                null -> createLinkMutableLiveData.value = null
+                is ApiResult.Loading -> createLinkMutableLiveData.value = ApiResult.Loading()
+                is ApiResult.Error -> createLinkMutableLiveData.value =
+                    ApiResult.Error(apiResult.exception)
+
+                is ApiResult.Success -> {
+                    val link = apiResult.data
+                    viewModelScope.launch {
+                        createLinkMutableLiveData.value = ApiResult.Loading()
+                        val result = runBlocking(
+                            onBlocking = { repository.insertLink(link) },
+                            onSuccess = {
+                                if (it) {
+                                    ApiResult.Success(it)
+                                } else {
+                                    ApiResult.Error(Exception("Failed to insert link"))
+                                }
+                            },
+                            onError = { ApiResult.Error(it) }
+                        )
+                        createLinkMutableLiveData.value = result
+                    }
+                }
+            }
+        }
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    fun validateUrl(
+    fun validateUrlThenForwardCreatingLink(
         tagId: Int,
         url: String,
         delayMillis: Long = 200,
         retryStep: LinkRetryStep? = LinkRetryStep.getInitialStep()
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (linkValidationLiveData.value is ApiResult.Loading &&
+            if (linkValidationMutableLiveData.value is ApiResult.Loading &&
                 retryStep == LinkRetryStep.getInitialStep()
             ) {
                 return@launch
@@ -125,7 +153,7 @@ class LinkScreenViewModel @Inject constructor(
                         if (e.statusCode == 429 && !retryStep.isLast()) {
                             println("429 error for: $url. Waiting for $delayMillis ms before retrying.")
                             sleep(delayMillis)
-                            return@launch validateUrl(tagId, url, delayMillis, retryStep.nextStep)
+                            return@launch validateUrlThenForwardCreatingLink(tagId, url, delayMillis, retryStep.nextStep)
                         } else {
                             ""
                         }
@@ -136,7 +164,6 @@ class LinkScreenViewModel @Inject constructor(
                     }
 
                     val link = Link(
-                        id = Uuid.random().toString(),
                         url = linkRetryStepToUrl,
                         tagId = tagId,
                         iconUrl = iconUrl,
@@ -150,7 +177,7 @@ class LinkScreenViewModel @Inject constructor(
             } catch (e: IllegalArgumentException) {
                 Log.e("LinkScreenViewModel", "Error validating URL: ${e.message}")
                 if (!retryStep.isLast()) {
-                    return@launch validateUrl(tagId, url, delayMillis, retryStep.nextStep)
+                    return@launch validateUrlThenForwardCreatingLink(tagId, url, delayMillis, retryStep.nextStep)
                 }
                 ApiResult.Error(IllegalArgumentException("Wrong URL format"))
             }

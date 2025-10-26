@@ -5,13 +5,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.example.linkkeeper.features.link.linkGraph
-import com.example.linkkeeper.features.splash.splashGraph
 import com.example.linkkeeper.features.tag.tagGraph
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier) {
-    NavHost(navController, startDestination = SplashDestination) {
-        splashGraph(navController)
+    NavHost(navController, startDestination = TagNavigation) {
         tagGraph(navController, modifier)
         linkGraph(navController, modifier)
     }

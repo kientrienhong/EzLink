@@ -1,61 +1,127 @@
-package com.example.linkkeeper.features.common.views
-
-import android.annotation.SuppressLint
-import android.view.ViewGroup
-import android.webkit.WebChromeClient
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.util.Log
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.linkkeeper.features.common.ConnectivityUtils
+import kotlinx.coroutines.delay
 
-@SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun MyWebView(
+fun WebViewWithTimeout(
     url: String,
     modifier: Modifier = Modifier,
-    onUpdate: (WebView) -> Unit = {},
-    onFinish: () -> Unit = {},
-    onError: () -> Unit = {}
+    webContent: String? = null,
+    timeoutMs: Long = 15_000L,
+    updateContent: () -> Unit
 ) {
-    AndroidView(
-        factory = {
-            WebView(it).apply {
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            }.apply {
-                webChromeClient = WebChromeClient()
-                webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(
-                        view: WebView?,
-                        request: WebResourceRequest?
-                    ): Boolean {
-                        view?.loadUrl(url)
-                        return true
-                    }
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        view?.evaluateJavascript(
-                            "(function() { return document.body ? document.body.innerHTML.length : 0; })();"
-                        ) { result ->
-                            val contentLength = result?.toIntOrNull() ?: 0
-                            if(contentLength == 0) {
-                                onError()
-                            } else {
-                                onFinish()
-                            }
+    val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(false) }
+    var didTimeout by remember { mutableStateOf(false) }
+    var webViewInstance by remember { mutableStateOf<WebView?>(null) }
+
+    LaunchedEffect(key1 = isLoading) {
+        if (isLoading) {
+            delay(timeoutMs)
+
+            if (isLoading) {
+                didTimeout = true
+                isLoading = false
+                webViewInstance?.stopLoading() // Stop the page load
+            }
+        }
+    }
+
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        // AndroidView is the standard way to host a classic Android View
+        AndroidView(
+            factory = { context ->
+                // Create the WebView instance
+                WebView(context).apply {
+                    // Set a transparent background
+                    setBackgroundColor(Color.TRANSPARENT)
+                    // Set up the WebViewClient
+                    webViewClient = object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): Boolean {
+                            view?.loadUrl(url)
+                            return true
+                        }
+
+                        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                            super.onPageStarted(view, url, favicon)
+                            // Page loading has started
+                            isLoading = true
+                            didTimeout = false // Reset timeout on new page load
+                        }
+
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            super.onPageFinished(view, url)
+                            // Page loading has finished
+                            isLoading = false
+                        }
+
+                        override fun onReceivedError(
+                            view: WebView?,
+                            request: WebResourceRequest?,
+                            error: WebResourceError?
+                        ) {
+                            super.onReceivedError(view, request, error)
+                            // Page loading has failed
+                            isLoading = false
+                            // You could set another state here to show a specific error
+                            Log.d("WebView", "error loading page: ${error?.description}")
                         }
                     }
+                    webViewInstance = this
                 }
-            }
-        },
-        modifier = modifier.background(Color.Transparent),
-        update = onUpdate
-    )
+            },
+            update = { webView ->
+                isLoading = true
+                didTimeout = false
+                Log.d("WebView", "update called with url: $url")
+
+                if (ConnectivityUtils.isNetworkAvailable(context)) {
+                    webView.loadUrl(url)
+                    // fire and forget content update
+                    updateContent()
+                } else {
+                    webView.loadDataWithBaseURL(
+                        url,
+                        webContent.orEmpty(),
+                        "text/html",
+                        "UTF-8",
+                        null
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+        if (isLoading) {
+            CircularProgressIndicator()
+        }
+        if (didTimeout) {
+            Text("Loading timed out. Please try again.")
+        }
+    }
 }

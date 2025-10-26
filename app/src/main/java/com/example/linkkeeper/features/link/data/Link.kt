@@ -20,7 +20,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Parcelize
 data class Link(
-    val id: Int,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int? = null,
     val tagId: Int,
     val url: String,
     val iconUrl: String?,

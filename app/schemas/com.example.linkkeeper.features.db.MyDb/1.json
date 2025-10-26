@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "de86b7c034fe9725f4d71013bcb2bf3c",
+    "identityHash": "17a192d755ff705c48fd933bb44704ee",
     "entities": [
       {
         "tableName": "tag",
@@ -50,7 +50,7 @@
       },
       {
         "tableName": "link",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `tagId` INTEGER NOT NULL, `url` TEXT NOT NULL, `iconUrl` TEXT, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `contentHtml` TEXT NOT NULL, FOREIGN KEY(`tagId`) REFERENCES `tag`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `tagId` INTEGER NOT NULL, `url` TEXT NOT NULL, `iconUrl` TEXT, `title` TEXT NOT NULL, `description` TEXT NOT NULL, FOREIGN KEY(`tagId`) REFERENCES `tag`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -85,12 +85,6 @@
           {
             "fieldPath": "description",
             "columnName": "description",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "contentHtml",
-            "columnName": "contentHtml",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -131,11 +125,11 @@
         "contentSyncTriggers": [
           "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_link_fts_BEFORE_UPDATE BEFORE UPDATE ON `link` BEGIN DELETE FROM `link_fts` WHERE `docid`=OLD.`rowid`; END",
           "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_link_fts_BEFORE_DELETE BEFORE DELETE ON `link` BEGIN DELETE FROM `link_fts` WHERE `docid`=OLD.`rowid`; END",
-          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_link_fts_AFTER_UPDATE AFTER UPDATE ON `link` BEGIN INSERT INTO `link_fts`(`docid`, `title`, `description`, `contentHtml`) VALUES (NEW.`rowid`, NEW.`title`, NEW.`description`, NEW.`contentHtml`); END",
-          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_link_fts_AFTER_INSERT AFTER INSERT ON `link` BEGIN INSERT INTO `link_fts`(`docid`, `title`, `description`, `contentHtml`) VALUES (NEW.`rowid`, NEW.`title`, NEW.`description`, NEW.`contentHtml`); END"
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_link_fts_AFTER_UPDATE AFTER UPDATE ON `link` BEGIN INSERT INTO `link_fts`(`docid`, `title`, `description`) VALUES (NEW.`rowid`, NEW.`title`, NEW.`description`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_link_fts_AFTER_INSERT AFTER INSERT ON `link` BEGIN INSERT INTO `link_fts`(`docid`, `title`, `description`) VALUES (NEW.`rowid`, NEW.`title`, NEW.`description`); END"
         ],
         "tableName": "link_fts",
-        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`title` TEXT NOT NULL, `description` TEXT NOT NULL, `contentHtml` TEXT, content=`link`)",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`title` TEXT NOT NULL, `description` TEXT NOT NULL, content=`link`)",
         "fields": [
           {
             "fieldPath": "title",
@@ -148,12 +142,6 @@
             "columnName": "description",
             "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "contentHtml",
-            "columnName": "contentHtml",
-            "affinity": "TEXT",
-            "notNull": false
           }
         ],
         "primaryKey": {
@@ -162,12 +150,56 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "content_html",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `linkId` INTEGER NOT NULL, `content` TEXT NOT NULL, FOREIGN KEY(`linkId`) REFERENCES `link`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "linkId",
+            "columnName": "linkId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "content",
+            "columnName": "content",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "link",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "linkId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'de86b7c034fe9725f4d71013bcb2bf3c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '17a192d755ff705c48fd933bb44704ee')"
     ]
   }
 }

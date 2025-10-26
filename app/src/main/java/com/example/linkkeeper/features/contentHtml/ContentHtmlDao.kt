@@ -1,8 +1,7 @@
-package com.example.linkkeeper.features.link.data
+package com.example.linkkeeper.features.contentHtml
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -16,8 +15,8 @@ abstract class ContentHtmlDao {
     @Update
     abstract suspend fun updateContentHtml(contentHtml: ContentHtml): Int
 
-    @Delete
-    abstract suspend fun deleteContentHtml(contentHtml: ContentHtml): Int
+    @Query("DELETE FROM content_html  WHERE linkId = :linkId")
+    abstract suspend fun deleteContentHtml(linkId: Int): Int
 
     @Query("SELECT * FROM content_html WHERE linkId = :linkId")
     abstract fun getContentHtmlLiveData(linkId: Int): LiveData<ContentHtml?>

@@ -1,6 +1,8 @@
 package com.example.linkkeeper.features.link.editor
 
+import WebViewWithTimeout
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -36,44 +40,30 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.example.linkkeeper.R
 import com.example.linkkeeper.features.common.ApiResult
-import com.example.linkkeeper.features.common.views.MyWebView
 import com.example.linkkeeper.features.common.views.TransparentTextField
-import com.example.linkkeeper.features.link.DownloadIcon
+import com.example.linkkeeper.features.contentHtml.ContentHtml
 import com.example.linkkeeper.features.link.data.Link
 
 @Composable
 fun LinkEditorScreen(
     link: Link,
-    isEdit: Boolean,
     popNavigation: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var description by remember(link) { mutableStateOf(link.description) }
     var title by remember(link) { mutableStateOf(link.title) }
-    var titleError by remember { mutableStateOf("") }
     val viewModel = hiltViewModel<LinkEditorViewModel>()
-    val insertResult by viewModel.resultMediatorLiveData.observeAsState()
+    val updateResult by viewModel.linkUpdateResultLiveData.observeAsState()
     val crawlResult by viewModel.crawlWebResultLiveData.observeAsState()
+    val contentHtml by viewModel.getContentHtmlLiveData(link.id ?: 0).observeAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-
-    fun validateTitle(): Boolean {
-        return if (title.trim().isEmpty()) {
-            titleError = "Title is required"
-            false
-        } else {
-            titleError = ""
-            true
-        }
-    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -81,14 +71,8 @@ fun LinkEditorScreen(
         }
     }
 
-    LifecycleResumeEffect(Unit) {
-        // Do something on resume or launch effect
-        onPauseOrDispose {
-        }
-    }
-
-    LaunchedEffect(insertResult) {
-        when (val result = insertResult) {
+    LaunchedEffect(updateResult) {
+        when (val result = updateResult) {
             is ApiResult.Success,
             is ApiResult.Loading,
             null -> Unit
@@ -105,39 +89,26 @@ fun LinkEditorScreen(
             .background(Color.Transparent)
     ) {
         LinkEditorScreenHeader(
-            linkId = link.id,
+            linkId = link.id ?: 0,
             url = link.url,
-            isEdit,
-            insertResult,
+            updateResult,
             crawlResult,
+            contentHtml,
             Modifier.padding(bottom = 8.dp),
             popNavigation,
             {
-                if (validateTitle()) {
-                    val link = link.copy(title = title, description = description)
-                    if (isEdit) {
-                        viewModel.updateLink(link)
-                    } else {
-                        viewModel.insertLink(link)
-                    }
-                }
+                val link = link.copy(title = title, description = description)
+                viewModel.updateLink(link)
             },
             viewModel::crawlContentHtml
         )
         TransparentTextField(
             value = title,
             placeholder = "Add a title",
-            onValueChange = {
-                title = it
-                if (titleError.isNotEmpty() && it.trim().isNotEmpty()) {
-                    titleError = ""
-                }
-            },
+            onValueChange = { title = it },
             modifier = Modifier.padding(bottom = 8.dp),
             singleLine = false,
             textStyle = MaterialTheme.typography.headlineSmall,
-            isError = titleError.isNotEmpty(),
-            errorText = titleError
         )
         TransparentTextField(
             value = description,
@@ -146,7 +117,14 @@ fun LinkEditorScreen(
             modifier = Modifier.padding(bottom = 8.dp),
             singleLine = false
         )
-        PreviewWebContainer(link)
+        WebViewWithTimeout(
+            link.url,
+            Modifier.fillMaxSize(),
+            contentHtml?.content,
+            updateContent = {
+                viewModel.refreshContentHtml(link.id ?: 0, link.url)
+            }
+        )
     }
 }
 
@@ -156,9 +134,9 @@ fun LinkEditorScreen(
 private fun LinkEditorScreenHeader(
     linkId: Int,
     url: String,
-    isEdit: Boolean,
     insertResult: ApiResult<Boolean>?,
     crawlResult: ApiResult<Unit>?,
+    contentHtml: ContentHtml?,
     modifier: Modifier = Modifier,
     popNavigation: () -> Unit,
     onSaveClick: () -> Unit,
@@ -166,7 +144,7 @@ private fun LinkEditorScreenHeader(
 ) {
     val context = LocalContext.current
     val windowSizeClass =
-        calculateWindowSizeClass(activity = LocalContext.current as android.app.Activity)
+        calculateWindowSizeClass(activity = LocalContext.current as Activity)
     val isBackArrowVisible = remember(windowSizeClass) {
         windowSizeClass.widthSizeClass != WindowWidthSizeClass.Expanded
     }
@@ -196,14 +174,12 @@ private fun LinkEditorScreenHeader(
             modifier = Modifier.padding(bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-//            if (isEdit) {
-//                DownloadIcon(
-//                    crawlResult,
-//                    { onDownloadResourceClick(linkId, url) },
-//                    Modifier.padding(end = 8.dp)
-//                )
-//            }
-
+            DownloadIcon(
+                contentHtml,
+                crawlResult,
+                { onDownloadResourceClick(linkId, url) },
+                Modifier.padding(end = 8.dp)
+            )
             Box(
                 Modifier
                     .clip(RoundedCornerShape(2.dp))
@@ -246,69 +222,57 @@ fun PreviewLinkEditorScreenHeader() {
     LinkEditorScreenHeader(
         1,
         "https://www.example.com",
-        false,
-        null,
-        null,
+        insertResult = null,
+        crawlResult = null,
+        contentHtml = null,
         Modifier.padding(16.dp),
-        {},
-        {},
-        {_, _ ->}
+        popNavigation = {},
+        onSaveClick = {},
+        onDownloadResourceClick = { _, _ -> }
     )
 }
 
 @Composable
-private fun PreviewWebContainer(link: Link, modifier: Modifier = Modifier) {
-    var webViewErrorType by remember { mutableStateOf(WebViewErrorType.None) }
-
-    when (webViewErrorType) {
-        WebViewErrorType.None,
-        WebViewErrorType.LocalHtmlLoadError -> MyWebView(
-            link.url,
-            modifier.padding(top = 16.dp),
-            onUpdate = {
-//                when {
-//                    link.contentHtml.isNotEmpty() && webViewErrorType == WebViewErrorType.None ->
-//                        it.loadDataWithBaseURL(
-//                            link.url,
-//                            link.contentHtml,
-//                            "text/html",
-//                            "UTF-8",
-//                            null
-//                        )
-//
-//                    link.contentHtml.isEmpty() ||
-//                            webViewErrorType == WebViewErrorType.LocalHtmlLoadError -> it.loadUrl(
-//                        link.url
-//                    )
-//
-//                    webViewErrorType == WebViewErrorType.RemoteUrlLoadError -> Unit
-//                }
-            },
-            onError = {
-                when (webViewErrorType) {
-                    WebViewErrorType.None -> webViewErrorType =
-                        WebViewErrorType.LocalHtmlLoadError
-
-                    WebViewErrorType.LocalHtmlLoadError -> webViewErrorType =
-                        WebViewErrorType.RemoteUrlLoadError
-
-                    else -> Unit
-                }
+private fun DownloadIcon(
+    contentHtml: ContentHtml?,
+    crawlResult: ApiResult<Unit>?,
+    downloadContentResource: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier) {
+        if (contentHtml != null) {
+            if (contentHtml.content.isEmpty()) {
+                Text("This link does not support preview")
+            } else {
+                Icon(
+                    painterResource(R.drawable.delete),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-        )
+        } else {
+            when (crawlResult) {
+                null -> Image(
+                    painterResource(R.drawable.download),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            downloadContentResource()
+                        }
+                )
 
-        WebViewErrorType.RemoteUrlLoadError -> Text(
-            "Does not support preview for this link",
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-        )
+                is ApiResult.Success -> Icon(
+                    painterResource(R.drawable.delete),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(24.dp)
+                )
+
+                is ApiResult.Error -> Text("This link does not support preview")
+                is ApiResult.Loading -> CircularProgressIndicator()
+            }
+        }
     }
-}
-
-private enum class WebViewErrorType {
-    None,
-    LocalHtmlLoadError,
-    RemoteUrlLoadError
 }

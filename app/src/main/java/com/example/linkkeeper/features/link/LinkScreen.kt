@@ -70,10 +70,8 @@ fun LinkScreen(popBack: () -> Unit, modifier: Modifier = Modifier) {
                 val selectedItem =
                     scaffoldNavigator.currentDestination?.contentKey ?: return@AnimatedPane
                 val link = selectedItem.link
-                val isEdit = selectedItem.isEdit
                 LinkEditorScreen(
                     link,
-                    isEdit,
                     popNavigation = {
                         if (scaffoldNavigator.currentDestination?.pane == ListDetailPaneScaffoldRole.Detail) {
                             scope.launch {

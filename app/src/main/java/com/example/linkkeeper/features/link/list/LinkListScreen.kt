@@ -50,7 +50,7 @@ fun LinkScreen(
     val context: Context = LocalContext.current
     val viewModel = hiltViewModel<LinkScreenViewModel>()
     val tagRetrievingResult by viewModel.tagRetrievingResultLiveData.observeAsState()
-    val urlValidationResult by viewModel.linkValidationLiveData.observeAsState()
+    val createLinkResult by viewModel.createLinkLiveData.observeAsState()
     val listLink by viewModel.linkListLiveData.observeAsState()
     val searchValue by viewModel.searchLiveData.observeAsState()
     val deleteLinkResult by viewModel.deleteLinkLiveData.observeAsState()
@@ -59,8 +59,8 @@ fun LinkScreen(
 
     LaunchedEffect(Unit) { viewModel.getTagName() }
 
-    LaunchedEffect(urlValidationResult) {
-        val result = urlValidationResult
+    LaunchedEffect(createLinkResult) {
+        val result = createLinkResult
         when (result) {
             is ApiResult.Error -> {
                 Toast.makeText(
@@ -71,7 +71,6 @@ fun LinkScreen(
             }
 
             is ApiResult.Success -> {
-                navigateToLinkEditor(result.data, false /* isEdit */)
                 showBottomSheet = false
                 viewModel.resetLinkValidationLiveData()
             }
@@ -113,9 +112,9 @@ fun LinkScreen(
             if (showBottomSheet) {
                 AddItemBottomSheet(
                     title = "Add url link",
-                    stateCreate = urlValidationResult,
+                    stateCreate = createLinkResult,
                     onDismissRequest = { showBottomSheet = false },
-                    onSubmitWithEditTextValue = { viewModel.validateUrl(viewModel.tagId, it) },
+                    onSubmitWithEditTextValue = { viewModel.validateUrlThenForwardCreatingLink(viewModel.tagId, it) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
