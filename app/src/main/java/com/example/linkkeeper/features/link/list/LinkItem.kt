@@ -18,6 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.integration.compose.placeholder
+import com.example.linkkeeper.R
 import com.example.linkkeeper.features.link.data.Link
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -59,7 +61,9 @@ fun LinkItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
-                    .aspectRatio(2.5f)
+                    .aspectRatio(2.5f),
+                loading = placeholder(R.drawable.picture),
+                failure = placeholder(R.drawable.picture)
             )
         }
         Text(
