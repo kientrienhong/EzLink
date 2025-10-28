@@ -24,6 +24,9 @@ abstract class LinkDao {
     @Query("SELECT * FROM link Where tagId = :tagId")
     abstract fun getLinkList(tagId: Int): List<Link>
 
+    @Query("DELETE FROM link Where tagId = :tagId")
+    abstract fun deleteLinksByTagId(tagId: Int): Int
+
     @Query("""
         SELECT link.*
         FROM link
