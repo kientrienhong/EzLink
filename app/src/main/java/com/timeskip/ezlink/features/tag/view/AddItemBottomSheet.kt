@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.features.tag.view
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.ApiResult
@@ -37,7 +39,7 @@ fun <T> AddItemBottomSheet(
     modifier: Modifier = Modifier
 ) {
     val sheetState = rememberModalBottomSheetState()
-
+    val context = LocalContext.current
     LaunchedEffect(stateCreate) {
         when (stateCreate) {
             is ApiResult.Success -> {
@@ -45,7 +47,12 @@ fun <T> AddItemBottomSheet(
                 onDismissRequest()
             }
 
-            is ApiResult.Error,
+            is ApiResult.Error -> Toast.makeText(
+                context,
+                stateCreate.exception.message,
+                Toast.LENGTH_LONG
+            ).show()
+
             is ApiResult.Loading,
             null -> Unit
         }
@@ -56,7 +63,7 @@ fun <T> AddItemBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState
     ) {
-        TagAddBottomSheetContent(
+        AddBottomSheetContent(
             title,
             stateCreate,
             onDismissRequest = onDismissRequest,
@@ -66,7 +73,7 @@ fun <T> AddItemBottomSheet(
 }
 
 @Composable
-private fun <T> TagAddBottomSheetContent(
+private fun <T> AddBottomSheetContent(
     title: String,
     createState: ApiResult<T>?,
     modifier: Modifier = Modifier,
@@ -107,7 +114,7 @@ private fun <T> TagAddBottomSheetContent(
 @Composable
 private fun TagAddBottomSheetLoadingStatePreview() {
     LinkKeeperTheme {
-        TagAddBottomSheetContent(
+        AddBottomSheetContent(
             title = "Add tag",
             createState = ApiResult.Loading<Unit>(),
             onDismissRequest = {},
@@ -119,7 +126,7 @@ private fun TagAddBottomSheetLoadingStatePreview() {
 @Composable
 private fun TagAddBottomSheetInitialStatePreview() {
     LinkKeeperTheme {
-        TagAddBottomSheetContent<Unit>(
+        AddBottomSheetContent<Unit>(
             title = "Add tag",
             createState = null,
             onDismissRequest = {},
