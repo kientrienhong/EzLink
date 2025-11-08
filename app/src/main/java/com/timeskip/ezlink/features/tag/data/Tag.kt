@@ -5,8 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "tag")
 data class Tag(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int? = null,
+    @PrimaryKey
     val name: String,
     val amountOfLink: Int = 0,
     val isRead: Boolean = false,

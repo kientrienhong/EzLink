@@ -13,12 +13,12 @@ class LinkRepositoryImpl @Inject constructor(
     private val contentHtmlDao: ContentHtmlDao,
     private val databaseTransactionRunner: DatabaseTransactionRunner
 ) : LinkRepository {
-    override suspend fun getTag(id: Int): Tag = tagDao.getTag(id)
+    override suspend fun getTag(tagName: String): Tag = tagDao.getTagByName(tagName)
 
-    override fun getLinkListLiveData(tagId: Int): LiveData<List<Link>> =
-        linkDao.getLinkListLiveData(tagId)
+    override fun getLinkListLiveData(tagName: String): LiveData<List<Link>> =
+        linkDao.getLinkListLiveData(tagName)
 
-    override fun getAllLink(tagId: Int): List<Link> = linkDao.getLinkList(tagId)
+    override fun getAllLink(tagName: String): List<Link> = linkDao.getLinkList(tagName)
 
     override suspend fun insertLink(link: Link): Boolean = linkDao.insertLink(link) > 0
 

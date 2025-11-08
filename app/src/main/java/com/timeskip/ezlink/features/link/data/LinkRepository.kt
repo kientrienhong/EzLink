@@ -4,11 +4,11 @@ import androidx.lifecycle.LiveData
 import com.timeskip.ezlink.features.tag.data.Tag
 
 interface LinkRepository {
-    suspend fun getTag(id: Int): Tag
+    suspend fun getTag(tagName: String): Tag
 
-    fun getLinkListLiveData(tagId: Int): LiveData<List<Link>>
+    fun getLinkListLiveData(tagName: String): LiveData<List<Link>>
 
-    fun getAllLink(tagId: Int): List<Link>
+    fun getAllLink(tagName: String): List<Link>
 
     suspend fun insertLink(link: Link): Boolean
 

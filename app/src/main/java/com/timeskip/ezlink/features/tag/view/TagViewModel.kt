@@ -53,7 +53,11 @@ class TagViewModel @Inject constructor(private val repository: TagRepository) : 
             createTagMutableLiveData.value = ApiResult.Loading()
             createTagMutableLiveData.value = runBlocking(
                 onBlocking = {
-                    val tag = Tag(id = null, name = name)
+                    val tag = Tag(name = name)
+                    val existedTag = repository.getTagByName(name)
+                    if (existedTag != null) {
+                        throw IllegalArgumentException("Tag with name '$name' already exists.")
+                    }
                     repository.createTag(tag)
                 },
                 onSuccess = { ApiResult.Success(it) },
@@ -75,6 +79,7 @@ class TagViewModel @Inject constructor(private val repository: TagRepository) : 
             )
         }
     }
+
     private fun Tag.toTagViewItem(): TagViewItem {
         val backgroundColor = TagBackgroundColorProvider.getColorFromTag(this)
         return TagViewItem(this, backgroundColor)

@@ -11,18 +11,18 @@ import androidx.room.Update
 abstract class TagDao {
     @Query(
         """
-        SELECT *, (SELECT sum(tagId) from link where link.tagId = tag.id) as amountOfLink
+        SELECT *, (SELECT sum(tagName) from link where link.tagName = tag.name) as amountOfLink
         FROM tag
     """
     )
     abstract suspend fun getTagList(): List<Tag>
 
-    @Query("SELECT * from tag where id = :id")
-    abstract suspend fun getTag(id: Int): Tag
+    @Query("SELECT * from tag where name = :name")
+    abstract suspend fun getTagByName(name: String): Tag
 
     @Query(
         """
-        SELECT *, (SELECT count(tagId) from link where link.tagId = tag.id) as amountOfLink
+        SELECT *, (SELECT count(tagName) from link where link.tagName = tag.name) as amountOfLink
         FROM tag
     """
     )

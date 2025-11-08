@@ -12,8 +12,8 @@ import kotlinx.serialization.Serializable
     tableName = "link",
     foreignKeys = [ForeignKey(
         entity = Tag::class,
-        parentColumns = arrayOf("id"),
-        childColumns = arrayOf("tagId"),
+        parentColumns = arrayOf("name"),
+        childColumns = arrayOf("tagName"),
         onDelete = ForeignKey.CASCADE
     )]
 )
@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
 data class Link(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
-    val tagId: Int,
+    val tagName: String,
     val url: String,
     val iconUrl: String?,
     val title: String,

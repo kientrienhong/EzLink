@@ -31,7 +31,6 @@ class LinkScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val tagId: Int = savedStateHandle["tagId"] ?: 0
     private val tagName: String? = savedStateHandle["tagName"]
 
     private val searchMutableLiveData: MutableLiveData<String> = MutableLiveData("")
@@ -48,7 +47,8 @@ class LinkScreenViewModel @Inject constructor(
     private val listLinkMediatorLiveData: MutableLiveData<List<Link>> = MediatorLiveData()
     val linkListLiveData: LiveData<List<Link>> = listLinkMediatorLiveData
 
-    private val localLinkListLiveData: LiveData<List<Link>> = repository.getLinkListLiveData(tagId)
+    private val localLinkListLiveData: LiveData<List<Link>> =
+        repository.getLinkListLiveData(tagName.orEmpty())
     private val deleteLinkMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
 
     val deleteLinkLiveData: LiveData<ApiResult<Boolean>> = deleteLinkMutableLiveData
@@ -80,7 +80,7 @@ class LinkScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 if (search.isBlank()) {
-                    repository.getAllLink(tagId)
+                    repository.getAllLink(tagName.orEmpty())
                 } else {
                     searchLink(search)
                 }
@@ -123,7 +123,6 @@ class LinkScreenViewModel @Inject constructor(
 
     @OptIn(ExperimentalUuidApi::class)
     fun validateUrlThenForwardCreatingLink(
-        tagId: Int,
         url: String,
         delayMillis: Long = 200,
         retryStep: LinkRetryStep? = LinkRetryStep.getInitialStep()
@@ -153,7 +152,11 @@ class LinkScreenViewModel @Inject constructor(
                         if (e.statusCode == 429 && !retryStep.isLast()) {
                             println("429 error for: $url. Waiting for $delayMillis ms before retrying.")
                             sleep(delayMillis)
-                            return@launch validateUrlThenForwardCreatingLink(tagId, url, delayMillis, retryStep.nextStep)
+                            return@launch validateUrlThenForwardCreatingLink(
+                                url,
+                                delayMillis,
+                                retryStep.nextStep
+                            )
                         } else {
                             ""
                         }
@@ -165,7 +168,7 @@ class LinkScreenViewModel @Inject constructor(
 
                     val link = Link(
                         url = linkRetryStepToUrl,
-                        tagId = tagId,
+                        tagName = tagName.orEmpty(),
                         iconUrl = iconUrl,
                         title = title,
                         description = ""
@@ -177,7 +180,11 @@ class LinkScreenViewModel @Inject constructor(
             } catch (e: IllegalArgumentException) {
                 Log.e("LinkScreenViewModel", "Error validating URL: ${e.message}")
                 if (!retryStep.isLast()) {
-                    return@launch validateUrlThenForwardCreatingLink(tagId, url, delayMillis, retryStep.nextStep)
+                    return@launch validateUrlThenForwardCreatingLink(
+                        url,
+                        delayMillis,
+                        retryStep.nextStep
+                    )
                 }
                 ApiResult.Error(IllegalArgumentException("Wrong URL format"))
             }
@@ -197,7 +204,7 @@ class LinkScreenViewModel @Inject constructor(
             }
             tagRetrievingResultMutableLiveData.value = ApiResult.Loading()
             val result = runBlocking(
-                onBlocking = { repository.getTag(tagId) },
+                onBlocking = { repository.getTag(tagName.orEmpty()) },
                 onSuccess = { ApiResult.Success(it.name) },
                 onError = { ApiResult.Error(it) }
             )

@@ -17,7 +17,7 @@ import com.timeskip.ezlink.features.tag.data.Tag
 fun ListTagItem(
     stateFlowTagList: List<TagViewItem>,
     stateFlowInitialLoad: ApiResult<Unit>,
-    onTagClick: (Int, String) -> Unit,
+    onTagClick: (String) -> Unit,
     onLongClick: (Tag) -> Unit
 ) {
     when (stateFlowInitialLoad) {
@@ -38,7 +38,7 @@ fun ListTagItem(
                 }
                 items(
                     count = stateFlowTagList.size,
-                    key = { index -> stateFlowTagList[index].tag.id ?: 0 }
+                    key = { index -> stateFlowTagList[index].tag.name }
                 ) { index ->
                     val tagViewItem = stateFlowTagList[index]
                     TagItem(tagViewItem, onTagClick, onLongClick)

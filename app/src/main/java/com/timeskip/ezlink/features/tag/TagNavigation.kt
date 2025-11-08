@@ -18,7 +18,7 @@ fun NavController.navigateToHomeTag(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.tagGraph(navController: NavController, modifier: Modifier) {
     navigation<TagNavigation>(TagListDestination) {
         composable<TagListDestination> {
-            TagScreen(modifier) { id, name -> navController.navigateToLink(id, name) }
+            TagScreen(modifier) { name -> navController.navigateToLink(name) }
         }
     }
 }

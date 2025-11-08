@@ -95,7 +95,7 @@ private fun PreviewLinkItemLightMode() {
     LinkItem(
         Link(
             1,
-            1,
+            "",
             url = "https://abc.com",
             iconUrl = "https://logo.clearbit.com/medium.com",
             title = "Abd.test",
@@ -111,7 +111,7 @@ private fun PreviewLinkItemDarkMode() {
     LinkItem(
         Link(
             2,
-            1,
+            "",
             url = "https://abc.com",
             iconUrl = "https://logo.clearbit.com/medium.com",
             title = "Abd.test",

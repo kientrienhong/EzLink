@@ -21,7 +21,7 @@ data object TagListDestination : DestinationItem()
 data object LinkNavigation : DestinationItem()
 
 @Serializable
-data class LinkDestination(val tagId: Int, val tagName: String?) : DestinationItem()
+data class LinkDestination(val tagName: String) : DestinationItem()
 
 @Serializable
 data class LinkEditorDestination(

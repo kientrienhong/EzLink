@@ -30,7 +30,7 @@ import com.timeskip.ezlink.features.tag.data.Tag
 @Composable
 fun TagItem(
     tagViewItem: TagViewItem,
-    onTagClick: (Int, String) -> Unit,
+    onTagClick: (String) -> Unit,
     onLongClick: (Tag) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -49,7 +49,7 @@ fun TagItem(
                             onLongClick(tagViewItem.tag)
                         }
                     },
-                    onTap = { onTagClick(tagViewItem.tag.id ?: 0, tagViewItem.tag.name) }
+                    onTap = { onTagClick(tagViewItem.tag.name) }
                 )
             },
         horizontalArrangement = Arrangement.SpaceBetween
@@ -83,10 +83,10 @@ fun TagItem(
 fun TagItemPreview() {
     TagItem(
         tagViewItem = TagViewItem(
-            tag = Tag(id = 1, name = "Sample Tag", amountOfLink = 5),
+            tag = Tag(name = "Sample Tag", amountOfLink = 5),
             backgroundColor = Color(0xFFBB86FC)
         ),
-        onTagClick = { _, _ -> },
+        onTagClick = { _ -> },
         onLongClick = {},
         modifier = Modifier.padding(16.dp)
     )

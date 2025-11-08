@@ -34,20 +34,20 @@ object DbModule {
                 super.onCreate(db)
                 db.execSQL(
                     """
-                        INSERT INTO tag (id, name, amountOfLink, isRead, isDefaultCreated) 
-                        VALUES (0, 'Favorite', 0, true, true)
+                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated) 
+                        VALUES ('Favorite', 0, true, true)
                     """
                 )
                 db.execSQL(
                     """
-                        INSERT INTO tag (id, name, amountOfLink, isRead, isDefaultCreated) 
-                        VALUES (1, 'Read later', 0, true, true)
+                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated) 
+                        VALUES ('Read later', 0, true, true)
                     """
                 )
                 db.execSQL(
                     """
-                        INSERT INTO tag (id, name, amountOfLink, isRead, isDefaultCreated) 
-                        VALUES (2, 'Personal', 0, true, true)
+                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated) 
+                        VALUES ('Personal', 0, true, true)
                     """
                 )
             }

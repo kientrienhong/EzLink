@@ -18,11 +18,13 @@ class TagRepositoryImpl @Inject constructor(
 
     override suspend fun deleteTag(tag: Tag): Boolean {
         databaseTransactionRunner.withTransaction {
-            linkDao.deleteLinksByTagId(tag.id ?: return@withTransaction)
+            linkDao.deleteLinksByTagName(tag.name)
             tagDao.deleteTag(tag)
         }
         return true
     }
 
     override suspend fun updateTag(tag: Tag): Boolean = tagDao.updateTag(tag) > 0
+
+    override suspend fun getTagByName(name: String): Tag? = tagDao.getTagByName(name)
 }

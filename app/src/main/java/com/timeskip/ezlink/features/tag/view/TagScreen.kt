@@ -31,7 +31,7 @@ import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.tag.data.Tag
 
 @Composable
-fun TagScreen(modifier: Modifier, onTagClick: (Int, String) -> Unit) {
+fun TagScreen(modifier: Modifier, onTagClick: (String) -> Unit) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<TagViewModel>()
     val stateFlowTagList by viewModel.tagListLiveData.observeAsState(emptyList())
@@ -84,7 +84,7 @@ private fun TagScreenMainContent(
     stateFlowInitialLoad: ApiResult<Unit>,
     currentSelectedTag: Tag?,
     currentSelectedTagChanged: (Tag?) -> Unit,
-    onTagClick: (Int, String) -> Unit,
+    onTagClick: (String) -> Unit,
     onAddButton: () -> Unit,
     onDeleteTag: (Tag) -> Unit
 ) {

@@ -18,21 +18,23 @@ abstract class LinkDao {
     @Delete
     abstract suspend fun deleteLink(link: Link): Int
 
-    @Query("SELECT * FROM link Where tagId = :tagId")
-    abstract fun getLinkListLiveData(tagId: Int): LiveData<List<Link>>
+    @Query("SELECT * FROM link Where tagName = :tagName")
+    abstract fun getLinkListLiveData(tagName: String): LiveData<List<Link>>
 
-    @Query("SELECT * FROM link Where tagId = :tagId")
-    abstract fun getLinkList(tagId: Int): List<Link>
+    @Query("SELECT * FROM link Where tagName = :tagName")
+    abstract fun getLinkList(tagName: String): List<Link>
 
-    @Query("DELETE FROM link Where tagId = :tagId")
-    abstract fun deleteLinksByTagId(tagId: Int): Int
+    @Query("DELETE FROM link Where tagName = :tagName")
+    abstract fun deleteLinksByTagName(tagName: String): Int
 
-    @Query("""
+    @Query(
+        """
         SELECT link.*
         FROM link
         JOIN link_fts ON link_fts.rowid = link.id
         WHERE link_fts MATCH :query
-    """)
+    """
+    )
     abstract suspend fun search(query: String): List<Link>
-    
+
 }
