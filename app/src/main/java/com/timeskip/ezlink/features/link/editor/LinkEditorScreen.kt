@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,6 +28,7 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +46,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.ApiResult
+import com.timeskip.ezlink.features.common.ConnectivityObserver
 import com.timeskip.ezlink.features.common.views.TransparentTextField
 import com.timeskip.ezlink.features.common.views.WebViewWithTimeout
 import com.timeskip.ezlink.features.contentHtml.ContentHtml
@@ -64,6 +67,7 @@ fun LinkEditorScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     var webViewError by remember { mutableStateOf<WebViewError?>(null) }
+    val networkStatus by viewModel.networkStatusFlow.collectAsState(initial = ConnectivityObserver.Status.Available)
 
     DisposableEffect(Unit) {
         onDispose {
@@ -120,13 +124,12 @@ fun LinkEditorScreen(
         )
         WebViewWithTimeout(
             link.url,
-            Modifier.weight(1f).fillMaxWidth(),
+            Modifier.fillMaxSize(),
             webViewError,
             contentHtml?.content,
+            networkStatus = networkStatus,
             updateWebViewError = { webViewError = it },
-            updateContent = {
-                viewModel.refreshContentHtml(link.id ?: 0, link.url)
-            }
+            updateContent = { viewModel.refreshContentHtml(link.id ?: 0, link.url) }
         )
     }
 }

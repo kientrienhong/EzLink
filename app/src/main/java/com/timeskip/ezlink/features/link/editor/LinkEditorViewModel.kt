@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
+import com.timeskip.ezlink.features.common.ConnectivityObserver
 import com.timeskip.ezlink.features.common.runBlocking
 import com.timeskip.ezlink.features.contentHtml.ContentHtml
 import com.timeskip.ezlink.features.contentHtml.ContentHtmlRepository
@@ -19,7 +20,8 @@ import kotlin.coroutines.cancellation.CancellationException
 @HiltViewModel
 class LinkEditorViewModel @Inject constructor(
     private val linkRepository: LinkRepository,
-    private val contentHtmlRepository: ContentHtmlRepository
+    private val contentHtmlRepository: ContentHtmlRepository,
+    connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
     private val linkUpdateResultMutableLiveData: MutableLiveData<ApiResult<Boolean>?> =
         MutableLiveData()
@@ -28,6 +30,8 @@ class LinkEditorViewModel @Inject constructor(
 
     private val crawlWebResultMutableLiveData: MutableLiveData<ApiResult<Unit>> = MutableLiveData()
     val crawlWebResultLiveData: LiveData<ApiResult<Unit>> = crawlWebResultMutableLiveData
+
+    val networkStatusFlow = connectivityObserver.observer()
 
     fun getContentHtmlLiveData(linkId: Int): LiveData<ContentHtml?> =
         contentHtmlRepository.getContentHtmlLiveData(linkId)
@@ -79,7 +83,7 @@ class LinkEditorViewModel @Inject constructor(
                 val contentHtmlExisted =
                     contentHtmlRepository.getContentHtml(linkId) ?: return@launch
                 val content = LinkUrlHelper.crawlData(url)
-                if(content?.isEmpty() == null) {
+                if (content?.isEmpty() == null) {
                     return@launch
                 }
                 contentHtmlRepository.updateContentHtml(contentHtmlExisted.copy(content = content))

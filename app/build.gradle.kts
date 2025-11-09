@@ -12,12 +12,12 @@ plugins {
 
 android {
     namespace = "com.timeskip.ezlink"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.timeskip.ezlink"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 28
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
