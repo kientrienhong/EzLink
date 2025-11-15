@@ -25,8 +25,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            isDebuggable = true
+        }
+
         release {
-            isMinifyEnabled = false
+            isDebuggable = false
+            isShrinkResources = true
+            // Enable code shrinking since shrinkResources requires it
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -45,6 +52,36 @@ android {
     }
     room {
         schemaDirectory("$projectDir/schemas")
+    }
+}
+
+tasks.register("buildRelease") {
+    group = "Release"
+    description = "Builds the release variant of the application."
+
+    dependsOn("bundleRelease") // Ensures the release App Bundle is assembled
+
+    doLast {
+        println("Release build process completed.")
+        // Add any additional release-specific actions here, e.g.:
+        // - Copying the release APK/Bundle to a specific directory
+        // - Generating release notes
+        // - Triggering deployment scripts
+    }
+}
+
+tasks.register("installReleaseApp") {
+    group = "Release"
+    description = "Builds and installs the release APK on a connected device."
+    dependsOn("assembleRelease")
+
+    doLast {
+        val adb = android.adbExecutable.absolutePath
+        val apk = file("build/outputs/apk/release/app-release.apk")
+        exec {
+            commandLine(adb, "install", "-r", apk)
+        }
+        println("Release APK installed successfully.")
     }
 }
 
