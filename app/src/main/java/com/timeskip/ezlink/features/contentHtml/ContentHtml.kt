@@ -2,6 +2,7 @@ package com.timeskip.ezlink.features.contentHtml
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.timeskip.ezlink.features.link.data.Link
 
@@ -12,7 +13,8 @@ import com.timeskip.ezlink.features.link.data.Link
         parentColumns = arrayOf("id"),
         childColumns = arrayOf("linkId"),
         onDelete = ForeignKey.CASCADE
-    )]
+    )],
+    indices = [Index(value = ["linkId"])]
 )
 data class ContentHtml(
     @PrimaryKey(autoGenerate = true)
