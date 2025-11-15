@@ -28,8 +28,8 @@ class LinkEditorViewModel @Inject constructor(
 
     val linkUpdateResultLiveData: LiveData<ApiResult<Boolean>?> = linkUpdateResultMutableLiveData
 
-    private val crawlWebResultMutableLiveData: MutableLiveData<ApiResult<Unit>> = MutableLiveData()
-    val crawlWebResultLiveData: LiveData<ApiResult<Unit>> = crawlWebResultMutableLiveData
+    private val crawlWebResultMutableLiveData: MutableLiveData<ApiResult<Unit>?> = MutableLiveData()
+    val crawlWebResultLiveData: LiveData<ApiResult<Unit>?> = crawlWebResultMutableLiveData
 
     val networkStatusFlow = connectivityObserver.observer()
 
@@ -95,7 +95,23 @@ class LinkEditorViewModel @Inject constructor(
         }
     }
 
+    fun deleteContentHtml(linkId: Int) {
+        viewModelScope.launch {
+            try {
+                contentHtmlRepository.deleteContentHtmlByLinkId(linkId)
+            } catch (canceled: CancellationException) {
+                throw canceled
+            } catch (_: Exception) {
+                // ignore this function is fire and forget
+            }
+        }
+    }
+
     fun reset() {
         linkUpdateResultMutableLiveData.value = null
+    }
+
+    fun resetCrawlWebResult() {
+        crawlWebResultMutableLiveData.value = null
     }
 }

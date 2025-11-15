@@ -18,10 +18,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
@@ -68,7 +70,7 @@ fun LinkEditorScreen(
     val scrollState = rememberScrollState()
     var webViewError by remember { mutableStateOf<WebViewError?>(null) }
     val networkStatus by viewModel.networkStatusFlow.collectAsState(initial = ConnectivityObserver.Status.Available)
-
+    var isAlertOpen by remember { mutableStateOf(false) }
     DisposableEffect(Unit) {
         onDispose {
             viewModel.reset()
@@ -105,7 +107,8 @@ fun LinkEditorScreen(
                 val link = link.copy(title = title, description = description)
                 viewModel.updateLink(link)
             },
-            viewModel::crawlContentHtml
+            viewModel::crawlContentHtml,
+            { isAlertOpen = true }
         )
         TransparentTextField(
             value = title,
@@ -131,6 +134,30 @@ fun LinkEditorScreen(
             updateWebViewError = { webViewError = it },
             updateContent = { viewModel.refreshContentHtml(link.id ?: 0, link.url) }
         )
+
+        if (isAlertOpen) {
+            AlertDialog(
+                onDismissRequest = { isAlertOpen = false },
+                title = { Text("Delete cached content") },
+                text = { Text("Are you sure you want to delete the cached content?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteContentHtml(link.id ?: 0)
+                            isAlertOpen = false
+                            viewModel.resetCrawlWebResult()
+                        }
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { isAlertOpen = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -147,7 +174,8 @@ private fun LinkEditorScreenHeader(
     webViewError: WebViewError? = null,
     popNavigation: () -> Unit,
     onSaveClick: () -> Unit,
-    onDownloadResourceClick: (Int, String) -> Unit
+    onDownloadResourceClick: (Int, String) -> Unit,
+    onContentHtmlDeleteClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val windowSizeClass =
@@ -187,7 +215,8 @@ private fun LinkEditorScreenHeader(
                 DownloadIcon(
                     contentHtml,
                     crawlResult,
-                    { onDownloadResourceClick(linkId, url) },
+                    downloadContentResource = { onDownloadResourceClick(linkId, url) },
+                    onDelete = { onContentHtmlDeleteClick() },
                     Modifier.padding(end = 8.dp)
                 )
             }
@@ -248,6 +277,7 @@ private fun DownloadIcon(
     contentHtml: ContentHtml?,
     crawlResult: ApiResult<Unit>?,
     downloadContentResource: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier) {
@@ -259,7 +289,9 @@ private fun DownloadIcon(
                     painterResource(R.drawable.delete),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { onDelete() }
                 )
             }
         } else {
@@ -278,7 +310,9 @@ private fun DownloadIcon(
                     painterResource(R.drawable.delete),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { onDelete() }
                 )
 
                 is ApiResult.Error -> Text("This link does not support preview")
