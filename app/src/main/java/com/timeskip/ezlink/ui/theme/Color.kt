@@ -1,9 +1,10 @@
 package com.timeskip.ezlink.ui.theme
 import androidx.compose.ui.graphics.Color
 
-val primaryLight = Color(0xFFFD734F)
+// EzSpec Colors - Light Scheme
+val primaryLight = Color(0xFFFE815A)           // Coral Orange
 val onPrimaryLight = Color(0xFFFFFFFF)
-val primaryContainerLight = Color(0xFFFD734F)
+val primaryContainerLight = Color(0xFFFE815A)
 val onPrimaryContainerLight = Color(0xFF681500)
 val secondaryLight = Color(0xFF815345)
 val onSecondaryLight = Color(0xFFFFFFFF)
@@ -17,13 +18,13 @@ val errorLight = Color(0xFFEA5F9D)
 val onErrorLight = Color(0xFFFFFFFF)
 val errorContainerLight = Color(0xFFFF76A8)
 val onErrorContainerLight = Color(0xFF76013D)
-val backgroundLight = Color(0xFFFFF8F6)
-val onBackgroundLight = Color(0xFF251916)
-val surfaceLight = Color(0xFFFCF8F8)
-val onSurfaceLight = Color(0xFF1C1B1B)
+val backgroundLight = Color(0xFFF5F6FA)        // App Gray
+val onBackgroundLight = Color(0xFF1A1A1A)      // Dark Charcoal (TextPrimary)
+val surfaceLight = Color(0xFFFFFFFF)           // Pure White
+val onSurfaceLight = Color(0xFF1A1A1A)          // Dark Charcoal (TextPrimary)
 val surfaceVariantLight = Color(0xFFF4DDE2)
-val onSurfaceVariantLight = Color(0xFF979797)
-val outlineLight = Color(0xFFCBC9C9)
+val onSurfaceVariantLight = Color(0xFF8F8F8F)  // Soft Grey (TextSecondary)
+val outlineLight = Color(0xFFEEEEEE)           // Light Grey (Border)
 val outlineVariantLight = Color(0xFFD7C1C7)
 val scrimLight = Color(0xFF000000)
 val inverseSurfaceLight = Color(0xFF313030)
@@ -37,10 +38,11 @@ val surfaceContainerLight = Color(0xFFF1EDEC)
 val surfaceContainerHighLight = Color(0xFFEBE7E7)
 val surfaceContainerHighestLight = Color(0xFFE5E2E1)
 
-val primaryDark = Color(0xFFFFB4A1)
-val onPrimaryDark = Color(0xFF611300)
-val primaryContainerDark = Color(0xFFFD734F)
-val onPrimaryContainerDark = Color(0xFF681500)
+// EzSpec Colors - Dark Scheme
+val primaryDark = Color(0xFFFF9D7A)           // Lighter Coral Orange for dark theme
+val onPrimaryDark = Color(0xFF4A1A00)
+val primaryContainerDark = Color(0xFFFE815A)
+val onPrimaryContainerDark = Color(0xFFFFFFFF)
 val secondaryDark = Color(0xFFF5B8A7)
 val onSecondaryDark = Color(0xFF4C261A)
 val secondaryContainerDark = Color(0xFFBA8474)
@@ -49,17 +51,17 @@ val tertiaryDark = Color(0xFFDAC0C9)
 val onTertiaryDark = Color(0xFF3D2C33)
 val tertiaryContainerDark = Color(0xFF877179)
 val onTertiaryContainerDark = Color(0xFF0C0206)
-val errorDark = Color(0xFFEA5F9D)
+val errorDark = Color(0xFFFF8FB8)
 val onErrorDark = Color(0xFF650033)
 val errorContainerDark = Color(0xFFFF76A8)
-val onErrorContainerDark = Color(0xFF76013D)
-val backgroundDark = Color(0xFF1C110E)
-val onBackgroundDark = Color(0xFFF5DDD8)
-val surfaceDark = Color(0xFF141313)
-val onSurfaceDark = Color(0xFFE5E2E1)
-val surfaceVariantDark = Color(0xFF524347)
-val onSurfaceVariantDark = Color(0xFFD7C1C7)
-val outlineDark = Color(0xFF9F8C91)
+val onErrorContainerDark = Color(0xFFFFFFFF)
+val backgroundDark = Color(0xFF121212)        // Dark background
+val onBackgroundDark = Color(0xFFE5E5E5)       // Light text on dark
+val surfaceDark = Color(0xFF1E1E1E)           // Dark surface
+val onSurfaceDark = Color(0xFFE5E5E5)          // Light text on dark surface
+val surfaceVariantDark = Color(0xFF2C2C2C)
+val onSurfaceVariantDark = Color(0xFFB0B0B0)  // Muted text on dark
+val outlineDark = Color(0xFF3A3A3A)            // Dark border
 val outlineVariantDark = Color(0xFF524347)
 val scrimDark = Color(0xFF000000)
 val inverseSurfaceDark = Color(0xFFE5E2E1)
