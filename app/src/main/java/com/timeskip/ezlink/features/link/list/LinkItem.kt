@@ -1,17 +1,20 @@
 package com.timeskip.ezlink.features.link.list
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,7 +27,7 @@ import com.timeskip.ezlink.features.link.data.Link
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun LinkItem(
+internal fun LinkItem(
     link: Link,
     modifier: Modifier = Modifier,
     onNavigateToEditor: (Link) -> Unit,
@@ -38,56 +41,47 @@ fun LinkItem(
         "(No description)"
     }
 
-    Card(
-        modifier
-            .fillMaxWidth()
+    Column(
+        modifier = modifier
+            .shadow(8.dp, MaterialTheme.shapes.large)
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surface)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = { onLongClick(link) },
                     onTap = { onNavigateToEditor(link) }
                 )
-            },
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        )
+            }
+            .padding(20.dp)
     ) {
-
         if (link.iconUrl != null) {
             GlideImage(
                 model = link.iconUrl,
                 contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .aspectRatio(2.5f),
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 loading = placeholder(R.drawable.picture),
                 failure = placeholder(R.drawable.picture)
             )
         }
+        Spacer(Modifier.height(16.dp))
         Text(
-            link.url,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(8.dp)
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
+        Spacer(Modifier.height(8.dp))
         Text(
-            title,
-            modifier = Modifier.padding(8.dp),
+            text = description,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Text(
-            description,
-            modifier = Modifier.padding(8.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 3
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
+
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable

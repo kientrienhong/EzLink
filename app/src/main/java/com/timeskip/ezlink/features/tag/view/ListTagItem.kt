@@ -1,11 +1,10 @@
 package com.timeskip.ezlink.features.tag.view
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.ApiResult
@@ -13,12 +12,12 @@ import com.timeskip.ezlink.features.common.views.GrayLogoWithTextView
 import com.timeskip.ezlink.features.tag.data.Tag
 
 @Composable
-@Stable
-fun ListTagItem(
+internal fun ListTagItem(
     stateFlowTagList: List<TagViewItem>,
     stateFlowInitialLoad: ApiResult<Unit>,
     onTagClick: (String) -> Unit,
-    onLongClick: (Tag) -> Unit
+    onLongClick: (Tag) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     when (stateFlowInitialLoad) {
         is ApiResult.Loading -> {
@@ -26,8 +25,8 @@ fun ListTagItem(
             Text("Loading")
         }
 
-        is ApiResult.Success -> {
-            LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
+        is ApiResult.Success ->
+            LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 if (stateFlowTagList.isEmpty()) {
                     item {
                         GrayLogoWithTextView(
@@ -44,7 +43,6 @@ fun ListTagItem(
                     TagItem(tagViewItem, onTagClick, onLongClick)
                 }
             }
-        }
 
         is ApiResult.Error -> GrayLogoWithTextView(
             modifier = Modifier.fillMaxSize(),
