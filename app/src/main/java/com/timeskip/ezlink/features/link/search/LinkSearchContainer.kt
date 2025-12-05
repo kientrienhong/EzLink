@@ -1,4 +1,4 @@
-package com.timeskip.ezlink.features.link
+package com.timeskip.ezlink.features.link.search
 
 import android.os.Parcelable
 import androidx.compose.foundation.background
@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.views.GrayLogoWithTextView
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.editor.LinkEditorScreen
-import com.timeskip.ezlink.features.link.list.LinkScreen
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -29,7 +28,7 @@ private data class LinkEditorScreenArgs(val link: Link, val isEdit: Boolean) : P
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun LinkScreen(popBack: () -> Unit, modifier: Modifier = Modifier) {
+fun LinkSearchContainer(search: String, popBack: () -> Unit, modifier: Modifier = Modifier) {
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<LinkEditorScreenArgs>(
         isDestinationHistoryAware = true
     )
@@ -39,8 +38,10 @@ fun LinkScreen(popBack: () -> Unit, modifier: Modifier = Modifier) {
         navigator = scaffoldNavigator,
         listPane = {
             AnimatedPane(modifier = modifier) {
-                LinkScreen(
-                    navigateToLinkEditor = { link, isEdit ->
+                LinkSearchScreen(
+                    search = search,
+                    onBack = popBack,
+                    onItemClick = { link, isEdit ->
                         scope.launch {
                             scaffoldNavigator.navigateTo(
                                 ListDetailPaneScaffoldRole.Detail,
@@ -48,7 +49,6 @@ fun LinkScreen(popBack: () -> Unit, modifier: Modifier = Modifier) {
                             )
                         }
                     },
-                    popBackStack = popBack
                 )
             }
         },

@@ -4,6 +4,8 @@ import com.timeskip.ezlink.features.contentHtml.ContentHtmlRepository
 import com.timeskip.ezlink.features.contentHtml.ContentHtmlRepositoryImpl
 import com.timeskip.ezlink.features.link.data.LinkRepository
 import com.timeskip.ezlink.features.link.data.LinkRepositoryImpl
+import com.timeskip.ezlink.features.link.search.LinkSearchRepository
+import com.timeskip.ezlink.features.link.search.LinkSearchRepositoryImpl
 import com.timeskip.ezlink.features.tag.data.TagRepository
 import com.timeskip.ezlink.features.tag.data.TagRepositoryImpl
 import dagger.Binds
@@ -24,4 +26,9 @@ interface RepositoryModule {
     fun provideContentHtmlRepository(
         contentHtmlRepositoryImpl: ContentHtmlRepositoryImpl
     ): ContentHtmlRepository
+
+    @Binds
+    fun provideLinkSearchRepository(
+        linkSearchRepositoryImpl: LinkSearchRepositoryImpl
+    ): LinkSearchRepository
 }

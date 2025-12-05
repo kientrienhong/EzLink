@@ -6,19 +6,13 @@ import kotlinx.serialization.Serializable
 sealed class DestinationItem
 
 @Serializable
-class HomeNavigation : DestinationItem()
-
-@Serializable
-data object SplashDestination : DestinationItem()
-
-@Serializable
 data object TagNavigation : DestinationItem()
 
 @Serializable
 data object TagListDestination : DestinationItem()
 
 @Serializable
-data object LinkNavigation : DestinationItem()
+data class LinkSearchNavigation(val search: String) : DestinationItem()
 
 @Serializable
 data class LinkDestination(val tagName: String) : DestinationItem()

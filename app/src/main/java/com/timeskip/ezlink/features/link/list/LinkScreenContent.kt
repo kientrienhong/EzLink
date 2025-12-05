@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.views.MyTextField
+import com.timeskip.ezlink.features.common.views.SearchTextField
 import com.timeskip.ezlink.features.link.data.Link
 
 @SuppressLint("ContextCastToActivity")
@@ -46,7 +47,15 @@ internal fun ColumnScope.LinkScreenContent(
         tagName = tagName,
         popBackStack = popBackStack
     ) { updateShowBottomSheet(it) }
-    MyTextField(searchValue, updateSearchValue, Modifier.padding(bottom = 8.dp))
+    SearchTextField(
+        value = searchValue,
+        placeholder = "Search links",
+        onValueChange = updateSearchValue,
+        enabled = false,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 8.dp)
+    )
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(count = 2),
         contentPadding = PaddingValues(vertical = 8.dp),
