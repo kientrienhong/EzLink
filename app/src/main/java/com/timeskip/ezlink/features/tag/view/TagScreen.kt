@@ -5,11 +5,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,6 +41,8 @@ import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.tag.data.Tag
+import com.timeskip.ezlink.features.tag.fab.FabViewItem
+import com.timeskip.ezlink.features.tag.fab.MultiFloatingActionButton
 
 @Composable
 internal fun TagScreen(
@@ -52,7 +56,7 @@ internal fun TagScreen(
     val stateFlowInitialLoad by viewModel.initialLoadLiveData.observeAsState(ApiResult.Loading())
     val stateTagCreating by viewModel.createTagLiveData.observeAsState()
     val stateDeleteTagResult by viewModel.deleteTagLiveData.observeAsState()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showTagAddBottomSheet by remember { mutableStateOf(false) }
     var currentSelectedTag by remember { mutableStateOf<Tag?>(null) }
 
     LaunchedEffect(stateDeleteTagResult) {
@@ -70,39 +74,55 @@ internal fun TagScreen(
         }
     }
 
-    TagScreenMainContent(
-        modifier,
-        stateFlowTagList,
-        stateFlowInitialLoad,
-        currentSelectedTag,
-        currentSelectedTagChanged = { currentSelectedTag = it },
-        onTagClick = onTagClick,
-        onAddButton = { showBottomSheet = true },
-        onDeleteTag = viewModel::deleteTag,
-        onSearchClick = onSearchClick
-    )
-    if (showBottomSheet) {
-        AddItemBottomSheet(
-            title = "Add tag",
-            stateCreate = stateTagCreating,
-            onDismissRequest = { showBottomSheet = false },
-            onSubmitWithEditTextValue = viewModel::createTag,
-            modifier = Modifier.fillMaxWidth(),
+    Box(modifier = modifier.fillMaxSize()) {
+        TagScreenMainContent(
+            stateFlowTagList,
+            stateFlowInitialLoad,
+            currentSelectedTag,
+            currentSelectedTagChanged = { currentSelectedTag = it },
+            onTagClick = onTagClick,
+            onDeleteTag = viewModel::deleteTag,
+            onSearchClick = onSearchClick
+        )
+        if (showTagAddBottomSheet) {
+            AddItemBottomSheet(
+                title = "Add tag",
+                stateCreate = stateTagCreating,
+                onDismissRequest = { showTagAddBottomSheet = false },
+                onSubmitWithEditTextValue = viewModel::createTag,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        MultiFloatingActionButton(
+            listOf(
+                FabViewItem(
+                    label = "Add Tag",
+                    iconRes = R.drawable.tag,
+                    onClick = { showTagAddBottomSheet = true }
+                ),
+                FabViewItem(
+                    label = "Add Link",
+                    iconRes = R.drawable.link,
+                    onClick = { showTagAddBottomSheet = true }
+                ),
+            ),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
         )
     }
 }
 
 @Composable
 private fun TagScreenMainContent(
-    modifier: Modifier = Modifier,
     stateFlowTagList: List<TagViewItem>,
     stateFlowInitialLoad: ApiResult<Unit>,
     currentSelectedTag: Tag?,
     currentSelectedTagChanged: (Tag?) -> Unit,
     onTagClick: (String) -> Unit,
-    onAddButton: () -> Unit,
     onDeleteTag: (Tag) -> Unit,
-    onSearchClick: (String) -> Unit
+    onSearchClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier
@@ -115,13 +135,6 @@ private fun TagScreenMainContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "EzLink", style = MaterialTheme.typography.headlineSmall)
-            Image(
-                painterResource(R.drawable.plus_icon),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable { onAddButton() }
-            )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Image(
@@ -193,7 +206,6 @@ private fun PreviewTagScreenMainContent() {
         currentSelectedTag = null,
         currentSelectedTagChanged = {},
         onTagClick = {},
-        onAddButton = {},
         onDeleteTag = {},
         onSearchClick = {}
     )
