@@ -55,8 +55,11 @@ internal fun TagScreen(
     val stateFlowTagList by viewModel.tagListLiveData.observeAsState(emptyList())
     val stateFlowInitialLoad by viewModel.initialLoadLiveData.observeAsState(ApiResult.Loading())
     val stateTagCreating by viewModel.createTagLiveData.observeAsState()
+    val stateLinkCreating by viewModel.createLinkLiveData.observeAsState()
     val stateDeleteTagResult by viewModel.deleteTagLiveData.observeAsState()
+
     var showTagAddBottomSheet by remember { mutableStateOf(false) }
+    var showLinkAddBottomSheet by remember { mutableStateOf(false) }
     var currentSelectedTag by remember { mutableStateOf<Tag?>(null) }
 
     LaunchedEffect(stateDeleteTagResult) {
@@ -93,6 +96,15 @@ internal fun TagScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+        if(showLinkAddBottomSheet) {
+            AddLinkBottomSheet(
+                listTagName = stateFlowTagList.map { it.tag.name },
+                result = stateLinkCreating,
+                onDismissRequest = { showLinkAddBottomSheet = false },
+                onSubmit = viewModel::createLink,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         MultiFloatingActionButton(
             listOf(
                 FabViewItem(
@@ -103,7 +115,7 @@ internal fun TagScreen(
                 FabViewItem(
                     label = "Add Link",
                     iconRes = R.drawable.link,
-                    onClick = { showTagAddBottomSheet = true }
+                    onClick = { showLinkAddBottomSheet = true }
                 ),
             ),
             modifier = Modifier

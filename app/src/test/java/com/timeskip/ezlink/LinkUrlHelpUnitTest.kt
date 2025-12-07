@@ -1,6 +1,6 @@
 package com.timeskip.ezlink
 
-import com.timeskip.ezlink.features.link.LinkUrlHelper
+import com.timeskip.ezlink.features.common.LinkUrlHelper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4

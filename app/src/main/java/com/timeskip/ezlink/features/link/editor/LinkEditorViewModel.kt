@@ -9,7 +9,7 @@ import com.timeskip.ezlink.features.common.ConnectivityObserver
 import com.timeskip.ezlink.features.common.runBlocking
 import com.timeskip.ezlink.features.contentHtml.ContentHtml
 import com.timeskip.ezlink.features.contentHtml.ContentHtmlRepository
-import com.timeskip.ezlink.features.link.LinkUrlHelper
+import com.timeskip.ezlink.features.common.LinkUrlHelper
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.data.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -14,7 +14,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -27,25 +26,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.ApiResult
+import com.timeskip.ezlink.features.common.views.MyInputDropdown
 import com.timeskip.ezlink.features.common.views.MyTextField
-import com.timeskip.ezlink.ui.theme.LinkKeeperTheme
+import com.timeskip.ezlink.features.link.data.Link
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T> AddItemBottomSheetWithSingleInput(
-    title: String,
-    stateCreate: ApiResult<T>?,
+fun AddLinkBottomSheet(
+    listTagName: List<String>,
+    result: ApiResult<Link>?,
     onDismissRequest: () -> Unit,
-    onSubmitWithEditTextValue: (String) -> Unit,
+    onSubmit: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val sheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
-    LaunchedEffect(stateCreate) {
-        when (stateCreate) {
+    LaunchedEffect(result) {
+        when (result) {
             is ApiResult.Success -> {
                 sheetState.hide()
                 onDismissRequest()
@@ -53,7 +52,7 @@ fun <T> AddItemBottomSheetWithSingleInput(
 
             is ApiResult.Error -> Toast.makeText(
                 context,
-                stateCreate.exception.message,
+                result.exception.message,
                 Toast.LENGTH_LONG
             ).show()
 
@@ -67,32 +66,44 @@ fun <T> AddItemBottomSheetWithSingleInput(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState
     ) {
-        AddBottomSheetContent(
-            title,
-            stateCreate,
+        AddLinkBottomSheetContent(
+            listTagName = listTagName,
+            result = result,
             onDismissRequest = onDismissRequest,
-            onSubmitWithEditTextValue = onSubmitWithEditTextValue
+            onSubmit = onSubmit,
+            modifier = Modifier
+                .padding(bottom = 16.dp)
+                .fillMaxWidth()
         )
     }
 }
 
 @Composable
-private fun <T> AddBottomSheetContent(
-    title: String,
-    createState: ApiResult<T>?,
-    modifier: Modifier = Modifier,
+private fun AddLinkBottomSheetContent(
+    listTagName: List<String>,
+    result: ApiResult<Link>?,
     onDismissRequest: () -> Unit,
-    onSubmitWithEditTextValue: (String) -> Unit
+    onSubmit: (String, String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var name by remember { mutableStateOf("") }
+    var tagName by remember { mutableStateOf("") }
+
     Column(modifier = modifier.padding(vertical = 16.dp, horizontal = 16.dp)) {
-        Text(title)
+        Text("Add link")
         Spacer(modifier = Modifier.height(8.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
             value = name,
             onChange = { name = it },
             shape = MaterialTheme.shapes.small
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        MyInputDropdown(
+            options = listTagName,
+            value = tagName,
+            onChangeValue = { tagName = it },
+            modifier = Modifier.fillMaxWidth()
         )
         Row(
             modifier = Modifier
@@ -104,37 +115,13 @@ private fun <T> AddBottomSheetContent(
             TextButton(modifier = Modifier.padding(end = 24.dp), onClick = { onDismissRequest() }) {
                 Text("cancel")
             }
-            if (createState is ApiResult.Loading) {
+            if (result is ApiResult.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp))
             } else {
-                Button(onClick = { onSubmitWithEditTextValue(name) }) {
+                Button(onClick = { onSubmit(name, tagName) }) {
                     Text("Submit")
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun TagAddBottomSheetLoadingStatePreview() {
-    LinkKeeperTheme {
-        AddBottomSheetContent(
-            title = "Add tag",
-            createState = ApiResult.Loading<Unit>(),
-            onDismissRequest = {},
-            onSubmitWithEditTextValue = {})
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun TagAddBottomSheetInitialStatePreview() {
-    LinkKeeperTheme {
-        AddBottomSheetContent<Unit>(
-            title = "Add tag",
-            createState = null,
-            onDismissRequest = {},
-            onSubmitWithEditTextValue = {})
     }
 }

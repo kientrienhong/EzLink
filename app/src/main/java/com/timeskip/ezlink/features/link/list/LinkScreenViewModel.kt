@@ -1,7 +1,5 @@
 package com.timeskip.ezlink.features.link.list
 
-import android.util.Log
-import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,16 +10,13 @@ import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.debounce
 import com.timeskip.ezlink.features.common.runBlocking
-import com.timeskip.ezlink.features.link.LinkRetryStep
-import com.timeskip.ezlink.features.link.LinkUrlHelper
+import com.timeskip.ezlink.features.common.LinkValidateUtils
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.data.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jsoup.HttpStatusException
-import java.lang.Thread.sleep
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -122,72 +117,26 @@ class LinkScreenViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    fun validateUrlThenForwardCreatingLink(
-        url: String,
-        delayMillis: Long = 200,
-        retryStep: LinkRetryStep? = LinkRetryStep.getInitialStep()
-    ) {
+    fun validateUrlThenCreatingLink(url: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (linkValidationMutableLiveData.value is ApiResult.Loading &&
-                retryStep == LinkRetryStep.getInitialStep()
-            ) {
+            if (linkValidationMutableLiveData.value is ApiResult.Loading) {
                 return@launch
             }
-            if (retryStep == null) {
-                linkValidationMutableLiveData.postValue(ApiResult.Error(IllegalArgumentException("Wrong URL format")))
-                return@launch
-            }
-
-            val linkRetryStepToUrl = LinkRetryStep.getCurrentUrlFormat(url, retryStep)
             linkValidationMutableLiveData.postValue(ApiResult.Loading())
-            val result = try {
-                val isValid = Patterns.WEB_URL.matcher(linkRetryStepToUrl).matches()
-                if (isValid) {
-                    val domain = LinkUrlHelper.getDomain(linkRetryStepToUrl)
-                    val iconUrl = getIconUrl(domain)
-
-                    val title = try {
-                        LinkUrlHelper.getTitle(linkRetryStepToUrl)
-                    } catch (e: HttpStatusException) {
-                        if (e.statusCode == 429 && !retryStep.isLast()) {
-                            println("429 error for: $url. Waiting for $delayMillis ms before retrying.")
-                            sleep(delayMillis)
-                            return@launch validateUrlThenForwardCreatingLink(
-                                url,
-                                delayMillis,
-                                retryStep.nextStep
-                            )
-                        } else {
-                            ""
-                        }
-                    } catch (ex: IllegalArgumentException) {
-                        throw ex
-                    } catch (_: Exception) {
-                        ""
+            val validationResult = LinkValidateUtils.validateUrl(tagName.orEmpty(), url)
+            val result = when (validationResult) {
+                is ApiResult.Success -> {
+                    val resultInsert = repository.insertLink(validationResult.data)
+                    if (resultInsert) {
+                        ApiResult.Success(validationResult.data)
+                    } else {
+                        ApiResult.Error(Exception("Failed to insert link"))
                     }
-
-                    val link = Link(
-                        url = linkRetryStepToUrl,
-                        tagName = tagName.orEmpty(),
-                        iconUrl = iconUrl,
-                        title = title,
-                        description = ""
-                    )
-                    ApiResult.Success(link)
-                } else {
-                    ApiResult.Error(IllegalArgumentException("Invalid URL"))
                 }
-            } catch (e: IllegalArgumentException) {
-                Log.e("LinkScreenViewModel", "Error validating URL: ${e.message}")
-                if (!retryStep.isLast()) {
-                    return@launch validateUrlThenForwardCreatingLink(
-                        url,
-                        delayMillis,
-                        retryStep.nextStep
-                    )
-                }
-                ApiResult.Error(IllegalArgumentException("Wrong URL format"))
+                is ApiResult.Error -> ApiResult.Error(validationResult.exception)
+                is ApiResult.Loading -> ApiResult.Loading()
             }
+
             linkValidationMutableLiveData.postValue(result)
         }
     }

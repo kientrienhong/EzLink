@@ -96,7 +96,7 @@ internal fun LinkScreen(
                     title = "Add url link",
                     stateCreate = createLinkResult,
                     onDismissRequest = { showBottomSheet = false },
-                    onSubmitWithEditTextValue = { viewModel.validateUrlThenForwardCreatingLink(it) },
+                    onSubmitWithEditTextValue = { viewModel.validateUrlThenCreatingLink(it) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
