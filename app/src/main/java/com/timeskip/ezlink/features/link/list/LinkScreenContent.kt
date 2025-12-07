@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -27,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.views.MyTextField
-import com.timeskip.ezlink.features.common.views.SearchTextField
 import com.timeskip.ezlink.features.link.data.Link
 
 @SuppressLint("ContextCastToActivity")
@@ -47,11 +47,19 @@ internal fun ColumnScope.LinkScreenContent(
         tagName = tagName,
         popBackStack = popBackStack
     ) { updateShowBottomSheet(it) }
-    SearchTextField(
+    MyTextField(
         value = searchValue,
-        placeholder = "Search links",
-        onValueChange = updateSearchValue,
-        enabled = false,
+        placeholder = "Search links...",
+        onChange = updateSearchValue,
+        leadingIcon = {
+            Icon(
+                painterResource(R.drawable.search),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        enabled = true,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp, bottom = 8.dp)

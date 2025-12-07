@@ -1,6 +1,7 @@
 package com.timeskip.ezlink.features.tag.view
 
 import androidx.annotation.ColorInt
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import com.timeskip.ezlink.features.tag.data.Tag
 
@@ -17,10 +18,10 @@ object TagBackgroundColorProvider {
 }
 
 enum class TagBackgroundColor(val nameTag: String, @ColorInt val color: Long) {
-    FAVORITE("Favorite", 0xFFFAE8E7),
-    READ_LATER("Read later", 0xFFE8F0FA),
-    PERSONAL("Personal", 0xFFFAE8FB),
-    USER_TAG("", 0xFFFFFFFF);
+    FAVORITE("Favorite", 0xFFDC9F4C),
+    READ_LATER("Read later", 0xFFF1B4FE),
+    PERSONAL("Personal", 0xFF628CCE),
+    USER_TAG("", 0xFFFE815A);
 
     companion object {
         fun fromNameTag(nameTag: String): TagBackgroundColor {

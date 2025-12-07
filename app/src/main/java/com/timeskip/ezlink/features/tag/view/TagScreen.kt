@@ -2,6 +2,7 @@ package com.timeskip.ezlink.features.tag.view
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,11 +37,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.ApiResult
-import com.timeskip.ezlink.features.common.views.SearchTextField
+import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.tag.data.Tag
 
 @Composable
-internal fun TagScreen(modifier: Modifier, onTagClick: (String) -> Unit) {
+internal fun TagScreen(
+    modifier: Modifier,
+    onTagClick: (String) -> Unit,
+    onSearchClick: (String) -> Unit
+) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<TagViewModel>()
     val stateFlowTagList by viewModel.tagListLiveData.observeAsState(emptyList())
@@ -71,7 +78,8 @@ internal fun TagScreen(modifier: Modifier, onTagClick: (String) -> Unit) {
         currentSelectedTagChanged = { currentSelectedTag = it },
         onTagClick = onTagClick,
         onAddButton = { showBottomSheet = true },
-        onDeleteTag = viewModel::deleteTag
+        onDeleteTag = viewModel::deleteTag,
+        onSearchClick = onSearchClick
     )
     if (showBottomSheet) {
         AddItemBottomSheet(
@@ -93,9 +101,14 @@ private fun TagScreenMainContent(
     currentSelectedTagChanged: (Tag?) -> Unit,
     onTagClick: (String) -> Unit,
     onAddButton: () -> Unit,
-    onDeleteTag: (Tag) -> Unit
+    onDeleteTag: (Tag) -> Unit,
+    onSearchClick: (String) -> Unit
 ) {
-    Column(modifier.padding(horizontal = 16.dp)) {
+    Column(
+        modifier
+            .padding(horizontal = 16.dp)
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -110,24 +123,32 @@ private fun TagScreenMainContent(
                     .clickable { onAddButton() }
             )
         }
-        SearchTextField(
+        Spacer(modifier = Modifier.height(8.dp))
+        Image(
+            painterResource(R.drawable.link_home_illustration),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 9f)
+        )
+        MyTextField(
             value = "",
-            placeholder = "Search links",
-            onValueChange = {},
+            placeholder = "Search links...",
+            onChange = {},
+            leadingIcon = {
+                Icon(
+                    painterResource(R.drawable.search),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             enabled = false,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp, bottom = 8.dp)
-                .clickable {
-
-                }
-        )
-        Image(
-            painterResource(R.drawable.link_home_illustration),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
+                .clickable { onSearchClick("") }
         )
         Spacer(Modifier.height(16.dp))
         Text(text = "Your Tags", style = MaterialTheme.typography.titleMedium)
@@ -164,16 +185,17 @@ private fun TagScreenMainContent(
 private fun PreviewTagScreenMainContent() {
     TagScreenMainContent(
         stateFlowTagList = listOf(
-            TagViewItem(Tag("Sample Tag 1"), Color.Cyan),
-            TagViewItem(Tag("Sample Tag 2"), Color.LightGray),
-            TagViewItem(Tag("Sample Tag 3"), Color.Blue)
+            TagViewItem(Tag("Sample Tag 1"), Color(0xFFDC9F4C)),
+            TagViewItem(Tag("Sample Tag 2"), Color(0xFFF1B4FE)),
+            TagViewItem(Tag("Sample Tag 3"), Color(0xFF628CCE))
         ),
         stateFlowInitialLoad = ApiResult.Success(Unit),
         currentSelectedTag = null,
         currentSelectedTagChanged = {},
         onTagClick = {},
         onAddButton = {},
-        onDeleteTag = {}
+        onDeleteTag = {},
+        onSearchClick = {}
     )
 }
 

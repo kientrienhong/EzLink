@@ -6,6 +6,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.timeskip.ezlink.features.link.navigateToLink
+import com.timeskip.ezlink.features.link.navigateToSearchLink
 import com.timeskip.ezlink.features.tag.view.TagScreen
 import com.timeskip.ezlink.navigation.TagListDestination
 import com.timeskip.ezlink.navigation.TagNavigation
@@ -13,7 +14,11 @@ import com.timeskip.ezlink.navigation.TagNavigation
 fun NavGraphBuilder.tagGraph(navController: NavController, modifier: Modifier) {
     navigation<TagNavigation>(TagListDestination) {
         composable<TagListDestination> {
-            TagScreen(modifier) { name -> navController.navigateToLink(name) }
+            TagScreen(
+                modifier,
+                onTagClick = { name -> navController.navigateToLink(name) },
+                onSearchClick = { navController.navigateToSearchLink(it) }
+            )
         }
     }
 }

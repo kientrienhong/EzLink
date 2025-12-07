@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.features.link.search
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -68,14 +69,19 @@ class LinkSearchViewModel @Inject constructor(
     }
 
     private fun onSearch(search: String) {
+        Log.d("LinkSearchViewModel", "onSearch")
+
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
+                Log.d("LinkSearchViewModel", "Searching for: $search")
                 if (search.isNotEmpty()) {
-                    searchLink(search)
+                    return@withContext searchLink(search)
                 }
 
-                return@withContext emptyList<Link>()
+                return@withContext emptyList()
             }
+            Log.d("LinkSearchViewModel", "result for: $result")
+
             listLinkMutableLiveData.value = result
         }
     }
@@ -85,10 +91,7 @@ class LinkSearchViewModel @Inject constructor(
         return repository.search(searchQuery)
     }
 
-    private fun sanitizeSearchQuery(query: String?): String {
-        if (query == null) {
-            return "";
-        }
+    private fun sanitizeSearchQuery(query: String): String {
         val queryWithEscapedQuotes = query.replace(Regex.fromLiteral("\""), "\"\"")
         return "*\"$queryWithEscapedQuotes\"*"
     }
