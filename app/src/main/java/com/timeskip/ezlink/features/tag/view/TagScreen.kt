@@ -85,7 +85,7 @@ internal fun TagScreen(
             onSearchClick = onSearchClick
         )
         if (showTagAddBottomSheet) {
-            AddItemBottomSheet(
+            AddItemBottomSheetWithSingleInput(
                 title = "Add tag",
                 stateCreate = stateTagCreating,
                 onDismissRequest = { showTagAddBottomSheet = false },

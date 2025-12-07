@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.link.data.Link
-import com.timeskip.ezlink.features.tag.view.AddItemBottomSheet
+import com.timeskip.ezlink.features.tag.view.AddItemBottomSheetWithSingleInput
 
 @Composable
 internal fun LinkScreen(
@@ -92,7 +92,7 @@ internal fun LinkScreen(
                 { currentSelectedLink = it }
             )
             if (showBottomSheet) {
-                AddItemBottomSheet(
+                AddItemBottomSheetWithSingleInput(
                     title = "Add url link",
                     stateCreate = createLinkResult,
                     onDismissRequest = { showBottomSheet = false },

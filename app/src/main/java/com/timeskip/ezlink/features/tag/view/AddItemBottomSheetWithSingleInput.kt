@@ -31,7 +31,7 @@ import com.timeskip.ezlink.ui.theme.LinkKeeperTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T> AddItemBottomSheet(
+fun <T> AddItemBottomSheetWithSingleInput(
     title: String,
     stateCreate: ApiResult<T>?,
     onDismissRequest: () -> Unit,
