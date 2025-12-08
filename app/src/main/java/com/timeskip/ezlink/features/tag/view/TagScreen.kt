@@ -96,10 +96,11 @@ internal fun TagScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        if(showLinkAddBottomSheet) {
+        if (showLinkAddBottomSheet) {
             AddLinkBottomSheet(
                 listTagName = stateFlowTagList.map { it.tag.name },
                 result = stateLinkCreating,
+                tagName = "",
                 onDismissRequest = { showLinkAddBottomSheet = false },
                 onSubmit = viewModel::createLink,
                 modifier = Modifier.fillMaxWidth(),

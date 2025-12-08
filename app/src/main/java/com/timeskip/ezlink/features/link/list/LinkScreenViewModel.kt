@@ -26,15 +26,10 @@ class LinkScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val tagName: String? = savedStateHandle["tagName"]
+    val tagName: String? = savedStateHandle["tagName"]
 
     private val searchMutableLiveData: MutableLiveData<String> = MutableLiveData("")
     val searchLiveData: LiveData<String> = searchMutableLiveData
-
-    private val tagRetrievingResultMutableLiveData: MutableLiveData<ApiResult<String>> =
-        MutableLiveData()
-    val tagRetrievingResultLiveData: LiveData<ApiResult<String>> =
-        tagRetrievingResultMutableLiveData
 
     private val linkValidationMutableLiveData: MutableLiveData<ApiResult<Link>?> =
         MutableLiveData()
@@ -133,32 +128,12 @@ class LinkScreenViewModel @Inject constructor(
                         ApiResult.Error(Exception("Failed to insert link"))
                     }
                 }
+
                 is ApiResult.Error -> ApiResult.Error(validationResult.exception)
                 is ApiResult.Loading -> ApiResult.Loading()
             }
 
             linkValidationMutableLiveData.postValue(result)
-        }
-    }
-
-    fun getTagName() {
-        if (tagName != null) {
-            tagRetrievingResultMutableLiveData.value = ApiResult.Success(tagName)
-            return
-        }
-
-        viewModelScope.launch {
-            if (tagRetrievingResultMutableLiveData.value is ApiResult.Loading) {
-                return@launch
-            }
-            tagRetrievingResultMutableLiveData.value = ApiResult.Loading()
-            val result = runBlocking(
-                onBlocking = { repository.getTag(tagName.orEmpty()) },
-                onSuccess = { ApiResult.Success(it.name) },
-                onError = { ApiResult.Error(it) }
-            )
-
-            tagRetrievingResultMutableLiveData.value = result
         }
     }
 

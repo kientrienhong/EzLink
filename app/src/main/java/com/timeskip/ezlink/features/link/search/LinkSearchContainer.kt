@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.views.GrayLogoWithTextView
 import com.timeskip.ezlink.features.link.data.Link
-import com.timeskip.ezlink.features.link.editor.LinkEditorScreen
+import com.timeskip.ezlink.features.link.editor.LinkDetailScreen
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -70,7 +70,7 @@ fun LinkSearchContainer(search: String, popBack: () -> Unit, modifier: Modifier 
                 val selectedItem =
                     scaffoldNavigator.currentDestination?.contentKey ?: return@AnimatedPane
                 val link = selectedItem.link
-                LinkEditorScreen(
+                LinkDetailScreen(
                     link,
                     popNavigation = {
                         if (scaffoldNavigator.currentDestination?.pane == ListDetailPaneScaffoldRole.Detail) {

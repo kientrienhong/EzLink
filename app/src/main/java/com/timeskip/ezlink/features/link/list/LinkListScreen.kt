@@ -2,10 +2,18 @@ package com.timeskip.ezlink.features.link.list
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -15,13 +23,15 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.link.data.Link
-import com.timeskip.ezlink.features.tag.view.AddItemBottomSheetWithSingleInput
+import com.timeskip.ezlink.features.tag.view.AddLinkBottomSheet
 
 @Composable
 internal fun LinkScreen(
@@ -31,15 +41,12 @@ internal fun LinkScreen(
 ) {
     val context: Context = LocalContext.current
     val viewModel = hiltViewModel<LinkScreenViewModel>()
-    val tagRetrievingResult by viewModel.tagRetrievingResultLiveData.observeAsState()
     val createLinkResult by viewModel.createLinkLiveData.observeAsState()
     val listLink by viewModel.linkListLiveData.observeAsState()
     val searchValue by viewModel.searchLiveData.observeAsState()
     val deleteLinkResult by viewModel.deleteLinkLiveData.observeAsState()
     var showBottomSheet by remember { mutableStateOf(false) }
     var currentSelectedLink by remember { mutableStateOf<Link?>(null) }
-
-    LaunchedEffect(Unit) { viewModel.getTagName() }
 
     LaunchedEffect(createLinkResult) {
         val result = createLinkResult
@@ -78,55 +85,65 @@ internal fun LinkScreen(
             null -> Unit
         }
     }
-
-    when (val tagResult = tagRetrievingResult) {
-        is ApiResult.Success -> Column(modifier.padding(horizontal = 16.dp)) {
-            LinkScreenContent(
-                tagResult.data,
-                listLink,
-                searchValue.orEmpty(),
-                popBackStack,
-                navigateToLinkEditor,
-                viewModel::updateSearch,
-                { showBottomSheet = it },
-                { currentSelectedLink = it }
+    Box(modifier.padding(horizontal = 16.dp)) {
+        LinkScreenContent(
+            viewModel.tagName,
+            listLink,
+            searchValue.orEmpty(),
+            popBackStack,
+            navigateToLinkEditor,
+            viewModel::updateSearch,
+            { currentSelectedLink = it },
+            modifier = Modifier.fillMaxSize()
+        )
+        if (showBottomSheet) {
+            AddLinkBottomSheet(
+                listOf(viewModel.tagName.orEmpty()),
+                createLinkResult,
+                viewModel.tagName.orEmpty(),
+                onDismissRequest = { showBottomSheet = false },
+                onSubmit = { url, tagName -> viewModel.validateUrlThenCreatingLink(url) },
+                dropDownEnabled = false,
+                modifier = Modifier.fillMaxWidth()
             )
-            if (showBottomSheet) {
-                AddItemBottomSheetWithSingleInput(
-                    title = "Add url link",
-                    stateCreate = createLinkResult,
-                    onDismissRequest = { showBottomSheet = false },
-                    onSubmitWithEditTextValue = { viewModel.validateUrlThenCreatingLink(it) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            if (currentSelectedLink != null) {
-                AlertDialog(
-                    onDismissRequest = { currentSelectedLink = null },
-                    title = { Text("Delete Link") },
-                    text = { Text("Are you sure you want to delete this link?") },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                viewModel.deleteLink(currentSelectedLink ?: return@TextButton)
-                            }
-                        ) {
-                            Text("Delete")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { currentSelectedLink = null }) {
-                            Text("Cancel")
-                        }
-                    }
-                )
-            }
         }
-
-        is ApiResult.Error -> Text("Error")
-        is ApiResult.Loading,
-        null ->
-            // Shimmer loading
-            Text("Loading")
+        if (currentSelectedLink != null) {
+            AlertDialog(
+                onDismissRequest = { currentSelectedLink = null },
+                title = { Text("Delete Link") },
+                text = { Text("Are you sure you want to delete this link?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteLink(currentSelectedLink ?: return@TextButton)
+                        }
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { currentSelectedLink = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+        FloatingActionButton(
+            onClick = { showBottomSheet = true },
+            shape = CircleShape,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = "",
+                modifier = Modifier
+                    .size(24.dp),
+                tint = Color.White
+            )
+        }
     }
 }

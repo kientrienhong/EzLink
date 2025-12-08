@@ -30,16 +30,17 @@ import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.views.MyInputDropdown
 import com.timeskip.ezlink.features.common.views.MyTextField
-import com.timeskip.ezlink.features.link.data.Link
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddLinkBottomSheet(
+fun <T> AddLinkBottomSheet(
     listTagName: List<String>,
-    result: ApiResult<Link>?,
+    result: ApiResult<T>?,
+    tagName: String,
     onDismissRequest: () -> Unit,
     onSubmit: (String, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dropDownEnabled: Boolean = true
 ) {
     val sheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
@@ -69,6 +70,8 @@ fun AddLinkBottomSheet(
         AddLinkBottomSheetContent(
             listTagName = listTagName,
             result = result,
+            tagName = tagName,
+            dropDownEnabled = dropDownEnabled,
             onDismissRequest = onDismissRequest,
             onSubmit = onSubmit,
             modifier = Modifier
@@ -79,23 +82,25 @@ fun AddLinkBottomSheet(
 }
 
 @Composable
-private fun AddLinkBottomSheetContent(
+private fun <T> AddLinkBottomSheetContent(
     listTagName: List<String>,
-    result: ApiResult<Link>?,
+    result: ApiResult<T>?,
+    tagName: String,
+    dropDownEnabled: Boolean,
     onDismissRequest: () -> Unit,
     onSubmit: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var name by remember { mutableStateOf("") }
-    var tagName by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf("") }
+    var tagName by remember { mutableStateOf(tagName) }
 
     Column(modifier = modifier.padding(vertical = 16.dp, horizontal = 16.dp)) {
         Text("Add link")
         Spacer(modifier = Modifier.height(8.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = name,
-            onChange = { name = it },
+            value = url,
+            onChange = { url = it },
             shape = MaterialTheme.shapes.small
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -103,6 +108,7 @@ private fun AddLinkBottomSheetContent(
             options = listTagName,
             value = tagName,
             onChangeValue = { tagName = it },
+            enabled = dropDownEnabled,
             modifier = Modifier.fillMaxWidth()
         )
         Row(
@@ -118,7 +124,7 @@ private fun AddLinkBottomSheetContent(
             if (result is ApiResult.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp))
             } else {
-                Button(onClick = { onSubmit(name, tagName) }) {
+                Button(onClick = { onSubmit(url, tagName) }) {
                     Text("Submit")
                 }
             }

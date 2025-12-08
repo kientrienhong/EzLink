@@ -18,7 +18,7 @@ import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
-class LinkEditorViewModel @Inject constructor(
+class LinkDetailViewModel @Inject constructor(
     private val linkRepository: LinkRepository,
     private val contentHtmlRepository: ContentHtmlRepository,
     connectivityObserver: ConnectivityObserver

@@ -29,6 +29,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +55,11 @@ internal fun LinkSearchScreen(
     val listLink by viewModel.linkListLiveData.observeAsState(emptyList())
     var currentSelectedLink by remember { mutableStateOf<Link?>(null) }
     val deleteLinkResult by viewModel.deleteLinkLiveData.observeAsState()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     LaunchedEffect(deleteLinkResult) {
         val result = deleteLinkResult
@@ -102,6 +109,7 @@ internal fun LinkSearchScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp, bottom = 8.dp)
+                .focusRequester(focusRequester)
         )
         Spacer(modifier = Modifier.height(24.dp))
         LazyVerticalStaggeredGrid(

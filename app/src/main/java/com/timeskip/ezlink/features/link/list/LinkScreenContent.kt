@@ -4,10 +4,11 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,67 +34,69 @@ import com.timeskip.ezlink.features.link.data.Link
 @SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
-internal fun ColumnScope.LinkScreenContent(
+internal fun LinkScreenContent(
     tagName: String?,
     listLink: List<Link>?,
     searchValue: String,
     popBackStack: () -> Unit,
     onNavigateToEditor: (Link, Boolean) -> Unit,
     updateSearchValue: (String) -> Unit,
-    updateShowBottomSheet: (Boolean) -> Unit,
-    onLongClickItem: (Link) -> Unit
+    onLongClickItem: (Link) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    LinkScreenHeader(
-        tagName = tagName,
-        popBackStack = popBackStack
-    ) { updateShowBottomSheet(it) }
-    MyTextField(
-        value = searchValue,
-        placeholder = "Search links...",
-        onChange = updateSearchValue,
-        leadingIcon = {
-            Icon(
-                painterResource(R.drawable.search),
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        enabled = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 8.dp)
-    )
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(count = 2),
-        contentPadding = PaddingValues(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalItemSpacing = 16.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        if (listLink?.isEmpty() == true) {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                val emptyMessage = if (searchValue.isNotEmpty()) {
-                    "No links found for '$searchValue'. Click the '+' button to create a new link."
-                } else {
-                    "No links found"
+    Column(modifier.fillMaxSize()) {
+        LinkScreenHeader(
+            tagName = tagName,
+            popBackStack = popBackStack
+        )
+        MyTextField(
+            value = searchValue,
+            placeholder = "Search links...",
+            onChange = updateSearchValue,
+            leadingIcon = {
+                Icon(
+                    painterResource(R.drawable.search),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            enabled = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 8.dp)
+        )
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(count = 2),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalItemSpacing = 16.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (listLink?.isEmpty() == true) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    val emptyMessage = if (searchValue.isNotEmpty()) {
+                        "No links found for '$searchValue'. Click the '+' button to create a new link."
+                    } else {
+                        "No links found"
+                    }
+                    Text(
+                        emptyMessage,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Text(
-                    emptyMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
+            items(listLink?.size ?: 0) {
+                LinkItem(
+                    listLink.orEmpty()[it],
+                    onNavigateToEditor = { link -> onNavigateToEditor(link, true /* isEdit */) },
+                    onLongClick = onLongClickItem
                 )
             }
-        }
-
-        items(listLink?.size ?: 0) {
-            LinkItem(
-                listLink.orEmpty()[it],
-                onNavigateToEditor = { link -> onNavigateToEditor(link, true /* isEdit */) },
-                onLongClick = onLongClickItem
-            )
         }
     }
 }
@@ -118,7 +121,6 @@ private fun LinkScreenContentPreview() {
             popBackStack = {},
             onNavigateToEditor = { _, _ -> },
             updateSearchValue = {},
-            updateShowBottomSheet = {},
             onLongClickItem = {}
         )
     }
@@ -129,7 +131,6 @@ private fun LinkScreenHeader(
     modifier: Modifier = Modifier,
     tagName: String?,
     popBackStack: () -> Unit,
-    setShowBottomSheet: (Boolean) -> Unit
 ) {
     Row(
         modifier
@@ -151,12 +152,6 @@ private fun LinkScreenHeader(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Image(
-            painterResource(R.drawable.plus_icon),
-            contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-                .clickable { setShowBottomSheet(true) }
-        )
+        Box(Modifier.size(24.dp))
     }
 }
