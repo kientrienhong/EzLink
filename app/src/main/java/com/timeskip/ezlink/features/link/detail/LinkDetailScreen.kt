@@ -1,4 +1,4 @@
-package com.timeskip.ezlink.features.link.editor
+package com.timeskip.ezlink.features.link.detail
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -18,10 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,8 +63,6 @@ fun LinkDetailScreen(
     popNavigation: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var description by remember(link) { mutableStateOf(link.description) }
-    var title by remember(link) { mutableStateOf(link.title) }
     val viewModel = hiltViewModel<LinkDetailViewModel>()
     val updateResult by viewModel.linkUpdateResultLiveData.observeAsState()
     val crawlResult by viewModel.crawlWebResultLiveData.observeAsState()
@@ -72,6 +71,11 @@ fun LinkDetailScreen(
     var webViewError by remember { mutableStateOf<WebViewError?>(null) }
     val networkStatus by viewModel.networkStatusFlow.collectAsState(initial = ConnectivityObserver.Status.Available)
     var isAlertOpen by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    var isOpenDialog by remember { mutableStateOf(false) }
+    val listTagName by viewModel.listTagName.observeAsState(emptyList())
+    val link by viewModel.linkLiveData.observeAsState(link)
+
     DisposableEffect(Unit) {
         onDispose {
             viewModel.reset()
@@ -97,7 +101,6 @@ fun LinkDetailScreen(
         LinkEditorScreenHeader(
             linkId = link.id ?: 0,
             url = link.url,
-            updateResult,
             crawlResult,
             contentHtml,
             Modifier
@@ -105,12 +108,9 @@ fun LinkDetailScreen(
                 .align(Alignment.TopStart),
             webViewError,
             popNavigation,
-            {
-                val link = link.copy(title = title, description = description)
-                viewModel.updateLink(link)
-            },
             viewModel::crawlContentHtml,
-            { isAlertOpen = true }
+            onContentHtmlDeleteClick = { isAlertOpen = true },
+            setIsOpenDialog = { isOpenDialog = it }
         )
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -144,6 +144,7 @@ fun LinkDetailScreen(
                         .shadow(8.dp, MaterialTheme.shapes.large)
                         .clip(MaterialTheme.shapes.large)
                         .background(MaterialTheme.colorScheme.surface)
+                        .verticalScroll(scrollState)
                 ) {
                     WebViewWithTimeout(
                         link.url,
@@ -202,6 +203,16 @@ fun LinkDetailScreen(
                 }
             )
         }
+        if (isOpenDialog) {
+            EditLinkBottomSheet(
+                link = link,
+                listTagName = listTagName,
+                result = updateResult,
+                onDismissRequest = { isOpenDialog = false },
+                onSubmit = viewModel::updateLink,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -211,17 +222,15 @@ fun LinkDetailScreen(
 private fun LinkEditorScreenHeader(
     linkId: Int,
     url: String,
-    insertResult: ApiResult<Boolean>?,
     crawlResult: ApiResult<Unit>?,
     contentHtml: ContentHtml?,
     modifier: Modifier = Modifier,
     webViewError: WebViewError? = null,
     popNavigation: () -> Unit,
-    onSaveClick: () -> Unit,
     onDownloadResourceClick: (Int, String) -> Unit,
-    onContentHtmlDeleteClick: () -> Unit = {}
+    onContentHtmlDeleteClick: () -> Unit = {},
+    setIsOpenDialog: (Boolean) -> Unit = {}
 ) {
-    val context = LocalContext.current
     val windowSizeClass =
         calculateWindowSizeClass(activity = LocalContext.current as Activity)
     val isBackArrowVisible = remember(windowSizeClass) {
@@ -264,20 +273,14 @@ private fun LinkEditorScreenHeader(
                     Modifier.padding(end = 8.dp)
                 )
             }
-            when (insertResult) {
-                is ApiResult.Loading -> CircularProgressIndicator()
-                is ApiResult.Error,
-                null -> Text(
-                    "Save",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .clickable { onSaveClick() }
-                )
-
-                is ApiResult.Success -> popNavigation()
-            }
+            Icon(
+                painterResource(R.drawable.edit),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { setIsOpenDialog(true) },
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
@@ -288,74 +291,12 @@ fun PreviewLinkEditorScreenHeader() {
     LinkEditorScreenHeader(
         1,
         "https://www.example.com",
-        insertResult = null,
         crawlResult = null,
         contentHtml = null,
         Modifier.padding(16.dp),
         popNavigation = {},
-        onSaveClick = {},
         onDownloadResourceClick = { _, _ -> }
     )
-}
-
-@Composable
-private fun DownloadIcon(
-    contentHtml: ContentHtml?,
-    crawlResult: ApiResult<Unit>?,
-    downloadContentResource: () -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(modifier) {
-        if (contentHtml != null) {
-            if (contentHtml.content.isEmpty()) {
-                Icon(
-                    painterResource(R.drawable.download),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable {
-                            downloadContentResource()
-                        },
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                Icon(
-                    painterResource(R.drawable.delete),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable { onDelete() }
-                )
-            }
-        } else {
-            when (crawlResult) {
-                null -> Icon(
-                    painterResource(R.drawable.download),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable {
-                            downloadContentResource()
-                        },
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                is ApiResult.Success -> Icon(
-                    painterResource(R.drawable.delete),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable { onDelete() }
-                )
-
-                is ApiResult.Error -> Text("This link does not support preview")
-                is ApiResult.Loading -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            }
-        }
-    }
 }
 
 

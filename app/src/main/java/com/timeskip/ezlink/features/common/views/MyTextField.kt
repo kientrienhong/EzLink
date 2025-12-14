@@ -20,6 +20,8 @@ fun MyTextField(
     shape: Shape = MaterialTheme.shapes.medium,
     singleLine: Boolean = true,
     enabled: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     OutlinedTextField(
         value = value,
@@ -36,6 +38,8 @@ fun MyTextField(
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
         singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surface,
             unfocusedContainerColor = MaterialTheme.colorScheme.surface,

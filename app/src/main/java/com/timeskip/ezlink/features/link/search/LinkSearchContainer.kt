@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.views.GrayLogoWithTextView
 import com.timeskip.ezlink.features.link.data.Link
-import com.timeskip.ezlink.features.link.editor.LinkDetailScreen
+import com.timeskip.ezlink.features.link.detail.LinkDetailScreen
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 

@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.timeskip.ezlink.features.common.ConnectivityObserver
-import com.timeskip.ezlink.features.link.editor.WebViewError
+import com.timeskip.ezlink.features.link.detail.WebViewError
 import kotlinx.coroutines.delay
 
 @Composable

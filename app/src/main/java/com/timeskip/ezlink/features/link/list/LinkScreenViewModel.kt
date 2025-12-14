@@ -31,8 +31,9 @@ class LinkScreenViewModel @Inject constructor(
     private val searchMutableLiveData: MutableLiveData<String> = MutableLiveData("")
     val searchLiveData: LiveData<String> = searchMutableLiveData
 
-    private val linkValidationMutableLiveData: MutableLiveData<ApiResult<Link>?> =
+    private val createLinkMutableLiveData: MutableLiveData<ApiResult<Link>?> =
         MutableLiveData()
+    val createLinkLiveData: LiveData<ApiResult<Link>?> = createLinkMutableLiveData
 
     private val listLinkMediatorLiveData: MutableLiveData<List<Link>> = MediatorLiveData()
     val linkListLiveData: LiveData<List<Link>> = listLinkMediatorLiveData
@@ -43,9 +44,6 @@ class LinkScreenViewModel @Inject constructor(
 
     val deleteLinkLiveData: LiveData<ApiResult<Boolean>> = deleteLinkMutableLiveData
 
-    private val createLinkMutableLiveData: MediatorLiveData<ApiResult<Boolean>?> =
-        MediatorLiveData()
-    val createLinkLiveData: LiveData<ApiResult<Boolean>?> = createLinkMutableLiveData
 
     private val linkListObserver: Observer<List<Link>> = Observer {
         viewModelScope.launch {
@@ -82,42 +80,15 @@ class LinkScreenViewModel @Inject constructor(
     init {
         searchLiveData.observeForever(searchObserver)
         localLinkListLiveData.observeForever(linkListObserver)
-        createLinkMutableLiveData.addSource(linkValidationMutableLiveData) { apiResult ->
-            when (apiResult) {
-                null -> createLinkMutableLiveData.value = null
-                is ApiResult.Loading -> createLinkMutableLiveData.value = ApiResult.Loading()
-                is ApiResult.Error -> createLinkMutableLiveData.value =
-                    ApiResult.Error(apiResult.exception)
-
-                is ApiResult.Success -> {
-                    val link = apiResult.data
-                    viewModelScope.launch {
-                        createLinkMutableLiveData.value = ApiResult.Loading()
-                        val result = runBlocking(
-                            onBlocking = { repository.insertLink(link) },
-                            onSuccess = {
-                                if (it) {
-                                    ApiResult.Success(it)
-                                } else {
-                                    ApiResult.Error(Exception("Failed to insert link"))
-                                }
-                            },
-                            onError = { ApiResult.Error(it) }
-                        )
-                        createLinkMutableLiveData.value = result
-                    }
-                }
-            }
-        }
     }
 
     @OptIn(ExperimentalUuidApi::class)
     fun validateUrlThenCreatingLink(url: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (linkValidationMutableLiveData.value is ApiResult.Loading) {
+            if (createLinkMutableLiveData.value is ApiResult.Loading) {
                 return@launch
             }
-            linkValidationMutableLiveData.postValue(ApiResult.Loading())
+            createLinkMutableLiveData.postValue(ApiResult.Loading())
             val validationResult = LinkValidateUtils.validateUrl(tagName.orEmpty(), url)
             val result = when (validationResult) {
                 is ApiResult.Success -> {
@@ -133,7 +104,7 @@ class LinkScreenViewModel @Inject constructor(
                 is ApiResult.Loading -> ApiResult.Loading()
             }
 
-            linkValidationMutableLiveData.postValue(result)
+            createLinkMutableLiveData.postValue(result)
         }
     }
 
@@ -147,7 +118,7 @@ class LinkScreenViewModel @Inject constructor(
     }
 
     fun resetLinkValidationLiveData() {
-        linkValidationMutableLiveData.value = null
+        createLinkMutableLiveData.value = null
     }
 
     fun deleteLink(link: Link) {

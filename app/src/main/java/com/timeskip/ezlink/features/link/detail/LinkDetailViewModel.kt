@@ -1,17 +1,19 @@
-package com.timeskip.ezlink.features.link.editor
+package com.timeskip.ezlink.features.link.detail
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.ConnectivityObserver
+import com.timeskip.ezlink.features.common.LinkUrlHelper
 import com.timeskip.ezlink.features.common.runBlocking
 import com.timeskip.ezlink.features.contentHtml.ContentHtml
 import com.timeskip.ezlink.features.contentHtml.ContentHtmlRepository
-import com.timeskip.ezlink.features.common.LinkUrlHelper
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.data.LinkRepository
+import com.timeskip.ezlink.features.tag.data.TagRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,10 +21,14 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class LinkDetailViewModel @Inject constructor(
+    tagRepository: TagRepository,
     private val linkRepository: LinkRepository,
     private val contentHtmlRepository: ContentHtmlRepository,
-    connectivityObserver: ConnectivityObserver
+    connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
+    private val linkMutableLiveData: MutableLiveData<Link> = MutableLiveData()
+    val linkLiveData: LiveData<Link> = linkMutableLiveData
+
     private val linkUpdateResultMutableLiveData: MutableLiveData<ApiResult<Boolean>?> =
         MutableLiveData()
 
@@ -32,6 +38,10 @@ class LinkDetailViewModel @Inject constructor(
     val crawlWebResultLiveData: LiveData<ApiResult<Unit>?> = crawlWebResultMutableLiveData
 
     val networkStatusFlow = connectivityObserver.observer()
+
+    val listTagName: LiveData<List<String>> = tagRepository.getTagListLiveData().map { tagList ->
+        tagList.map { it.name }
+    }
 
     fun getContentHtmlLiveData(linkId: Int): LiveData<ContentHtml?> =
         contentHtmlRepository.getContentHtmlLiveData(linkId)
@@ -47,6 +57,10 @@ class LinkDetailViewModel @Inject constructor(
                 onSuccess = { ApiResult.Success(it) },
                 onError = { ApiResult.Error(it) }
             )
+
+            if (result is ApiResult.Success) {
+                linkMutableLiveData.value = link
+            }
 
             linkUpdateResultMutableLiveData.value = result
         }
