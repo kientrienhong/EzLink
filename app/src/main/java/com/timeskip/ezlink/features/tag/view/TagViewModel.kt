@@ -1,8 +1,8 @@
 package com.timeskip.ezlink.features.tag.view
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
@@ -136,7 +136,8 @@ class TagViewModel @Inject constructor(
     }
 
     private fun Tag.toTagViewItem(): TagViewItem {
-        val backgroundColor = TagBackgroundColorProvider.getColorFromTag(this)
-        return TagViewItem(this, backgroundColor)
+        val resource = TagResource.fromNameTag(this.name)
+        val backgroundColor = Color(resource.color)
+        return TagViewItem(this, backgroundColor, resource.iconRes)
     }
 }

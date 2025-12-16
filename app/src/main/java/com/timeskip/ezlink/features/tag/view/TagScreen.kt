@@ -3,7 +3,6 @@ package com.timeskip.ezlink.features.tag.view
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -74,9 +73,6 @@ internal fun TagScreen(
         } else if (sharedUrl != null) {
             viewModel.updateUrl(sharedUrl)
             showLinkAddBottomSheet = true
-        } else if (sharedTagName != null) {
-            // navigate to tag
-            onTagClick(sharedTagName)
         }
     }
 
@@ -96,7 +92,6 @@ internal fun TagScreen(
     }
 
     LaunchedEffect(stateLinkCreating) {
-        Log.d("TagScreen", "stateLinkCreating: $stateLinkCreating")
         when (stateLinkCreating) {
             is ApiResult.Success -> {
                 Toast.makeText(
@@ -268,9 +263,9 @@ private fun TagScreenMainContent(
 private fun PreviewTagScreenMainContent() {
     TagScreenMainContent(
         stateFlowTagList = listOf(
-            TagViewItem(Tag("Sample Tag 1"), Color(0xFFDC9F4C)),
-            TagViewItem(Tag("Sample Tag 2"), Color(0xFFF1B4FE)),
-            TagViewItem(Tag("Sample Tag 3"), Color(0xFF628CCE))
+            TagViewItem(Tag("Sample Tag 1"), Color(0xFFDC9F4C), R.drawable.heart),
+            TagViewItem(Tag("Sample Tag 2"), Color(0xFFF1B4FE), R.drawable.tag),
+            TagViewItem(Tag("Sample Tag 3"), Color(0xFF628CCE), R.drawable.book)
         ),
         stateFlowInitialLoad = ApiResult.Success(Unit),
         currentSelectedTag = null,

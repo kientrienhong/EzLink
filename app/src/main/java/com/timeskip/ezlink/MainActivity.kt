@@ -36,7 +36,9 @@ class MainActivity : ComponentActivity() {
                         val (url, tagName) = handleIntent(intent)
                         sharedUrl = url
                         sharedTagName = tagName
+                        Log.d("MainActivity", "Handled intent: intent $intent")
 
+                        Log.d("MainActivity", "Handled intent: url=$url, tagName=$tagName")
                         onPauseOrDispose {
                         }
                     }
