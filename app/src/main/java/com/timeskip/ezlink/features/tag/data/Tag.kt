@@ -9,5 +9,6 @@ data class Tag(
     val name: String,
     val amountOfLink: Int = 0,
     val isRead: Boolean = false,
-    val isDefaultCreated: Boolean = false
+    val isDefaultCreated: Boolean = false,
+    val updateAt: Long = System.currentTimeMillis()
 )

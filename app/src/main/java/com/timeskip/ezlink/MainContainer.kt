@@ -7,13 +7,13 @@ import androidx.navigation.compose.rememberNavController
 import com.timeskip.ezlink.navigation.AppNavHost
 
 @Composable
-fun MainContainer(modifier: Modifier) {
+fun MainContainer(sharedTagName: String?, sharedUrl: String?, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    AppNavHost(navController, modifier)
+    AppNavHost(sharedTagName, sharedUrl, navController, modifier)
 }
 
 @Preview
 @Composable
 fun MainContainerPreview() {
-    MainContainer(Modifier)
+    MainContainer("", "", Modifier)
 }

@@ -9,7 +9,7 @@ sealed class DestinationItem
 data object TagNavigation : DestinationItem()
 
 @Serializable
-data object TagListDestination : DestinationItem()
+data class TagListDestination(val url: String?) : DestinationItem()
 
 @Serializable
 data class LinkSearchNavigation(val search: String) : DestinationItem()

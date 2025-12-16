@@ -11,10 +11,17 @@ import com.timeskip.ezlink.features.tag.view.TagScreen
 import com.timeskip.ezlink.navigation.TagListDestination
 import com.timeskip.ezlink.navigation.TagNavigation
 
-fun NavGraphBuilder.tagGraph(navController: NavController, modifier: Modifier) {
-    navigation<TagNavigation>(TagListDestination) {
+fun NavGraphBuilder.tagGraph(
+    sharedTagName: String?,
+    sharedUrl: String?,
+    navController: NavController,
+    modifier: Modifier
+) {
+    navigation<TagNavigation>(TagListDestination(null)) {
         composable<TagListDestination> {
             TagScreen(
+                sharedTagName,
+                sharedUrl,
                 modifier,
                 onTagClick = { name -> navController.navigateToLink(name) },
                 onSearchClick = { navController.navigateToSearchLink(it) }

@@ -100,7 +100,8 @@ internal fun LinkScreen(
             AddLinkBottomSheet(
                 listOf(viewModel.tagName.orEmpty()),
                 createLinkResult,
-                viewModel.tagName.orEmpty(),
+                tagName = viewModel.tagName.orEmpty(),
+                url = "",
                 onDismissRequest = { showBottomSheet = false },
                 onSubmit = { url, tagName -> viewModel.validateUrlThenCreatingLink(url) },
                 dropDownEnabled = false,

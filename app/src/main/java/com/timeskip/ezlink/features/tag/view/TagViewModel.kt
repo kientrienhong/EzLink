@@ -2,11 +2,13 @@ package com.timeskip.ezlink.features.tag.view
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.LinkValidateUtils
+import com.timeskip.ezlink.features.common.TagShortcutManager
 import com.timeskip.ezlink.features.common.runBlocking
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.data.LinkRepository
@@ -21,12 +23,14 @@ import kotlin.uuid.ExperimentalUuidApi
 @HiltViewModel
 class TagViewModel @Inject constructor(
     private val tagRepository: TagRepository,
-    private val linkRepository: LinkRepository
+    private val linkRepository: LinkRepository,
+    private val tagShortcutManager: TagShortcutManager
 ) : ViewModel() {
-    val tagListLiveData: LiveData<List<TagViewItem>> = tagRepository.getTagListLiveData().switchMap {
-        val tagList = it.map { tag -> tag.toTagViewItem() }
-        MutableLiveData(tagList)
-    }
+    val tagListLiveData: LiveData<List<TagViewItem>> =
+        tagRepository.getTagListLiveData().switchMap {
+            val tagList = it.map { tag -> tag.toTagViewItem() }
+            MutableLiveData(tagList)
+        }
     private val initialLoadMutableLiveData: MutableLiveData<ApiResult<Unit>> =
         MutableLiveData<ApiResult<Unit>>()
     val initialLoadLiveData: LiveData<ApiResult<Unit>> = initialLoadMutableLiveData
@@ -35,11 +39,17 @@ class TagViewModel @Inject constructor(
     private val deleteTagMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
     val deleteTagLiveData: LiveData<ApiResult<Boolean>> = deleteTagMutableLiveData
 
-    private val createLinkMutableLiveData: MutableLiveData<ApiResult<Link>> = MutableLiveData()
-    val createLinkLiveData: LiveData<ApiResult<Link>> = createLinkMutableLiveData
+    private val createLinkMutableLiveData: MutableLiveData<ApiResult<Link>?> = MutableLiveData()
+    val createLinkLiveData: LiveData<ApiResult<Link>?> = createLinkMutableLiveData
+
+    private val urlMutableLiveData: MutableLiveData<String?> = MutableLiveData(null)
+    val urlLiveData: LiveData<String?> = urlMutableLiveData
 
     init {
         getTagList()
+        tagListLiveData.observeForever {
+            tagShortcutManager.updateTagShortcuts(it.map { item -> item.tag })
+        }
     }
 
     private fun getTagList() {
@@ -92,7 +102,7 @@ class TagViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    fun createLink( url: String, tagName: String) {
+    fun createLink(url: String, tagName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             if (createLinkLiveData.value is ApiResult.Loading) {
                 return@launch
@@ -108,12 +118,21 @@ class TagViewModel @Inject constructor(
                         ApiResult.Error(Exception("Failed to insert link"))
                     }
                 }
+
                 is ApiResult.Error -> ApiResult.Error(validationResult.exception)
                 is ApiResult.Loading -> ApiResult.Loading()
             }
 
             createLinkMutableLiveData.postValue(result)
         }
+    }
+
+    fun updateUrl(url: String?) {
+        urlMutableLiveData.value = url
+    }
+
+    fun resetCreateLinkLiveData() {
+        createLinkMutableLiveData.value = null
     }
 
     private fun Tag.toTagViewItem(): TagViewItem {

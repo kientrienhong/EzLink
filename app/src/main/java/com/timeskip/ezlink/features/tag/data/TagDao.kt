@@ -39,4 +39,10 @@ abstract class TagDao {
 
     @Update
     abstract suspend fun updateTag(tag: Tag): Int
+
+    @Query("UPDATE tag SET updateAt = :updateAt WHERE name = :name")
+    abstract suspend fun updateTagUpdatedAt(
+        name: String,
+        updateAt: Long = System.currentTimeMillis()
+    ): Int
 }

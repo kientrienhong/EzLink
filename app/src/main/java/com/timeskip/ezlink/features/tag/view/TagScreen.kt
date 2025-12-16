@@ -1,5 +1,9 @@
 package com.timeskip.ezlink.features.tag.view
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,12 +43,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.views.MyTextField
+import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.tag.data.Tag
 import com.timeskip.ezlink.features.tag.fab.FabViewItem
 import com.timeskip.ezlink.features.tag.fab.MultiFloatingActionButton
 
 @Composable
 internal fun TagScreen(
+    sharedTagName: String?,
+    sharedUrl: String?,
     modifier: Modifier,
     onTagClick: (String) -> Unit,
     onSearchClick: (String) -> Unit
@@ -57,10 +63,22 @@ internal fun TagScreen(
     val stateTagCreating by viewModel.createTagLiveData.observeAsState()
     val stateLinkCreating by viewModel.createLinkLiveData.observeAsState()
     val stateDeleteTagResult by viewModel.deleteTagLiveData.observeAsState()
-
+    val url by viewModel.urlLiveData.observeAsState(sharedUrl)
     var showTagAddBottomSheet by remember { mutableStateOf(false) }
     var showLinkAddBottomSheet by remember { mutableStateOf(false) }
     var currentSelectedTag by remember { mutableStateOf<Tag?>(null) }
+
+    LaunchedEffect(sharedTagName, sharedUrl) {
+        if (sharedTagName != null && sharedUrl != null) {
+            viewModel.createLink(sharedUrl, sharedTagName)
+        } else if (sharedUrl != null) {
+            viewModel.updateUrl(sharedUrl)
+            showLinkAddBottomSheet = true
+        } else if (sharedTagName != null) {
+            // navigate to tag
+            onTagClick(sharedTagName)
+        }
+    }
 
     LaunchedEffect(stateDeleteTagResult) {
         val result = stateDeleteTagResult
@@ -77,6 +95,31 @@ internal fun TagScreen(
         }
     }
 
+    LaunchedEffect(stateLinkCreating) {
+        Log.d("TagScreen", "stateLinkCreating: $stateLinkCreating")
+        when (stateLinkCreating) {
+            is ApiResult.Success -> {
+                Toast.makeText(
+                    context,
+                    "Link added successfully",
+                    Toast.LENGTH_LONG
+                ).show()
+                viewModel.resetCreateLinkLiveData()
+            }
+
+            is ApiResult.Error -> {
+                Toast.makeText(
+                    context,
+                    (stateLinkCreating as ApiResult.Error<Link>).exception.message,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            is ApiResult.Loading,
+            null -> Unit
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         TagScreenMainContent(
             stateFlowTagList,
@@ -85,13 +128,17 @@ internal fun TagScreen(
             currentSelectedTagChanged = { currentSelectedTag = it },
             onTagClick = onTagClick,
             onDeleteTag = viewModel::deleteTag,
-            onSearchClick = onSearchClick
+            onSearchClick = onSearchClick,
+            modifier = Modifier.fillMaxSize()
         )
         if (showTagAddBottomSheet) {
             AddItemBottomSheetWithSingleInput(
                 title = "Add tag",
                 stateCreate = stateTagCreating,
-                onDismissRequest = { showTagAddBottomSheet = false },
+                onDismissRequest = {
+                    showTagAddBottomSheet = false
+                    viewModel.updateUrl(null)
+                },
                 onSubmitWithEditTextValue = viewModel::createTag,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -101,7 +148,11 @@ internal fun TagScreen(
                 listTagName = stateFlowTagList.map { it.tag.name },
                 result = stateLinkCreating,
                 tagName = "",
-                onDismissRequest = { showLinkAddBottomSheet = false },
+                url = url.orEmpty(),
+                onDismissRequest = {
+                    showLinkAddBottomSheet = false
+                    viewModel.updateUrl(null)
+                },
                 onSubmit = viewModel::createLink,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -124,6 +175,12 @@ internal fun TagScreen(
                 .padding(16.dp)
         )
     }
+}
+
+private fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 @Composable
@@ -184,7 +241,7 @@ private fun TagScreenMainContent(
             stateFlowInitialLoad,
             onTagClick,
             currentSelectedTagChanged,
-            Modifier.fillMaxHeight()
+            Modifier.weight(1f)
         )
         if (currentSelectedTag != null) {
             AlertDialog(

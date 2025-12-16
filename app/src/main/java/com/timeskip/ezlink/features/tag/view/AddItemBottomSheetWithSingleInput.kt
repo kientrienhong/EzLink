@@ -15,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -42,11 +43,20 @@ fun <T> AddItemBottomSheetWithSingleInput(
     onSubmitWithEditTextValue: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(
+        confirmValueChange = { newState ->
+            newState != SheetValue.Hidden //  Stop bottom sheet from hiding on outside press
+        }
+    )
     val context = LocalContext.current
     LaunchedEffect(stateCreate) {
         when (stateCreate) {
             is ApiResult.Success -> {
+                Toast.makeText(
+                    context,
+                    "Tag added successfully",
+                    Toast.LENGTH_LONG
+                ).show()
                 sheetState.hide()
                 onDismissRequest()
             }

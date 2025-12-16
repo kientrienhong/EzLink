@@ -32,22 +32,24 @@ object DbModule {
         .addCallback(object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
+
+                val currentTime = System.currentTimeMillis()
                 db.execSQL(
                     """
-                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated) 
-                        VALUES ('Favorite', 0, true, true)
+                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated, updateAt) 
+                        VALUES ('Favorite', 0, 1, 1, $currentTime)
                     """
                 )
                 db.execSQL(
                     """
-                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated) 
-                        VALUES ('Read later', 0, true, true)
+                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated, updateAt) 
+                        VALUES ('Read later', 0, 1, 1, $currentTime)
                     """
                 )
                 db.execSQL(
                     """
-                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated) 
-                        VALUES ('Personal', 0, true, true)
+                        INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated, updateAt) 
+                        VALUES ('Personal', 0, 1, 1, $currentTime)
                     """
                 )
             }

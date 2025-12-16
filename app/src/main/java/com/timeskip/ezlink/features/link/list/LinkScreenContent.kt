@@ -68,7 +68,7 @@ internal fun LinkScreenContent(
         )
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(count = 2),
-            contentPadding = PaddingValues(vertical = 8.dp),
+            contentPadding = PaddingValues(vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalItemSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()

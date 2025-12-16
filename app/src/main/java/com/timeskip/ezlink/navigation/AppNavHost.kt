@@ -9,9 +9,14 @@ import com.timeskip.ezlink.features.link.linkSearchGraph
 import com.timeskip.ezlink.features.tag.tagGraph
 
 @Composable
-fun AppNavHost(navController: NavHostController, modifier: Modifier) {
+fun AppNavHost(
+    sharedTagName: String?,
+    sharedUrl: String?,
+    navController: NavHostController,
+    modifier: Modifier
+) {
     NavHost(navController, startDestination = TagNavigation) {
-        tagGraph(navController, modifier)
+        tagGraph(sharedTagName, sharedUrl, navController, modifier)
         linkGraph(navController, modifier)
         linkSearchGraph(navController, modifier)
     }

@@ -24,7 +24,5 @@ class TagRepositoryImpl @Inject constructor(
         return true
     }
 
-    override suspend fun updateTag(tag: Tag): Boolean = tagDao.updateTag(tag) > 0
-
     override suspend fun getTagByName(name: String): Tag? = tagDao.getTagByName(name)
 }

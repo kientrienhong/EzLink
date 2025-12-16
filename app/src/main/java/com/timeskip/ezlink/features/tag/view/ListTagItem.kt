@@ -3,6 +3,7 @@ package com.timeskip.ezlink.features.tag.view
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,7 +27,10 @@ internal fun ListTagItem(
         }
 
         is ApiResult.Success ->
-            LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            LazyColumn(
+                modifier = modifier,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 if (stateFlowTagList.isEmpty()) {
                     item {
                         GrayLogoWithTextView(

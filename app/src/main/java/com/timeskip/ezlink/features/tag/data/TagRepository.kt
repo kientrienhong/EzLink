@@ -11,7 +11,5 @@ interface TagRepository {
 
     suspend fun deleteTag(tag: Tag): Boolean
 
-    suspend fun updateTag(tag: Tag): Boolean
-
     suspend fun getTagByName(name: String): Tag?
 }

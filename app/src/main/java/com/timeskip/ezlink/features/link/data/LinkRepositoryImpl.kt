@@ -20,9 +20,25 @@ class LinkRepositoryImpl @Inject constructor(
 
     override fun getAllLink(tagName: String): List<Link> = linkDao.getLinkList(tagName)
 
-    override suspend fun insertLink(link: Link): Boolean = linkDao.insertLink(link) > 0
+    override suspend fun insertLink(link: Link): Boolean {
+        val result = linkDao.insertLink(link) > 0
+        try {
+            tagDao.updateTagUpdatedAt(link.tagName)
+        } catch (_: Exception) {
+            // ignore
+        }
+        return result
+    }
 
-    override suspend fun updateLink(link: Link): Boolean = linkDao.updateLink(link) > 0
+    override suspend fun updateLink(link: Link): Boolean {
+        val result = linkDao.updateLink(link) > 0
+        try {
+            tagDao.updateTagUpdatedAt(link.tagName)
+        } catch (_: Exception) {
+            // ignore
+        }
+        return result
+    }
 
     override suspend fun search(query: String): List<Link> = linkDao.search(query)
 
