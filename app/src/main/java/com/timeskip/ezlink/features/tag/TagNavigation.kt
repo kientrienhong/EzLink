@@ -16,6 +16,7 @@ fun NavGraphBuilder.tagGraph(
     sharedTagName: String?,
     sharedUrl: String?,
     navController: NavController,
+    resetSharedData: () -> Unit,
     modifier: Modifier
 ) {
     navigation<TagNavigation>(TagListDestination(null)) {
@@ -30,7 +31,8 @@ fun NavGraphBuilder.tagGraph(
                         NavOptions.Builder().setLaunchSingleTop(true).build()
                     )
                 },
-                onSearchClick = { navController.navigateToSearchLink(it) }
+                onSearchClick = { navController.navigateToSearchLink(it) },
+                resetSharedData = resetSharedData
             )
         }
     }

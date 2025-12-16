@@ -53,7 +53,8 @@ internal fun TagScreen(
     sharedUrl: String?,
     modifier: Modifier,
     onTagClick: (String) -> Unit,
-    onSearchClick: (String) -> Unit
+    onSearchClick: (String) -> Unit,
+    resetSharedData: () -> Unit,
 ) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<TagViewModel>()
@@ -70,9 +71,11 @@ internal fun TagScreen(
     LaunchedEffect(sharedTagName, sharedUrl) {
         if (sharedTagName != null && sharedUrl != null) {
             viewModel.createLink(sharedUrl, sharedTagName)
+            resetSharedData()
         } else if (sharedUrl != null) {
             viewModel.updateUrl(sharedUrl)
             showLinkAddBottomSheet = true
+            resetSharedData()
         }
     }
 

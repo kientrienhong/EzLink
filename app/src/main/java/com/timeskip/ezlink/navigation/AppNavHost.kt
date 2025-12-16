@@ -16,10 +16,11 @@ fun AppNavHost(
     sharedTagName: String?,
     sharedUrl: String?,
     navController: NavHostController,
+    resetSharedData: () -> Unit,
     modifier: Modifier
 ) {
     NavHost(navController, startDestination = TagNavigation) {
-        tagGraph(sharedTagName, sharedUrl, navController, modifier)
+        tagGraph(sharedTagName, sharedUrl, navController, resetSharedData, modifier)
         linkGraph(navController, modifier)
         linkSearchGraph(navController, modifier)
     }

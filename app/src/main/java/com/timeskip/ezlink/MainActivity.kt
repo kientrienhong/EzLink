@@ -43,7 +43,15 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    MainContainer(sharedTagName, sharedUrl, Modifier.padding(innerPadding))
+                    MainContainer(
+                        sharedTagName,
+                        sharedUrl,
+                        resetSharedData = {
+                            sharedTagName = null
+                            sharedUrl = null
+                        },
+                        Modifier.padding(innerPadding)
+                    )
                 }
             }
         }
