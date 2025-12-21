@@ -2,6 +2,7 @@ package com.timeskip.ezlink.features.tag
 
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
@@ -11,7 +12,6 @@ import com.timeskip.ezlink.features.link.navigateToSearchLink
 import com.timeskip.ezlink.features.tag.view.TagScreen
 import com.timeskip.ezlink.navigation.TagListDestination
 import com.timeskip.ezlink.navigation.TagNavigation
-import androidx.navigation.NavGraph.Companion.findStartDestination
 
 fun NavGraphBuilder.tagGraph(
     navController: NavController,
