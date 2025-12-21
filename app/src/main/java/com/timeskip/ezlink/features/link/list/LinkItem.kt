@@ -67,6 +67,13 @@ internal fun LinkItem(
         }
         Spacer(Modifier.height(16.dp))
         Text(
+            text = link.url,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
             maxLines = 2,

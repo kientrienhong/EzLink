@@ -18,4 +18,10 @@ interface LinkRepository {
     suspend fun search(query: String): List<Link>
 
     suspend fun deleteLink(context: Context, link: Link): Boolean
+
+    fun getPagedLinkListLiveData(tagName: String, pageSize: Int = 20): LiveData<List<Link>>
+
+    suspend fun getLinks(tagName: String, offset: Int, limit: Int): List<Link>
+
+    suspend fun searchPaged(query: String, offset: Int, limit: Int): List<Link>
 }

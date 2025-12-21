@@ -94,13 +94,6 @@ internal fun TagScreen(
         }
     }
 
-    LaunchedEffect(showTagAddBottomSheet, showLinkAddBottomSheet, showShareImageBottomSheet) {
-        // Consume only when ALL sheets are closed (your previous OR condition reset too eagerly).
-        if (!showTagAddBottomSheet && !showLinkAddBottomSheet && !showShareImageBottomSheet) {
-            onConsumeSharedIntent()
-        }
-    }
-
     LaunchedEffect(stateDeleteTagResult) {
         val result = stateDeleteTagResult
         when (result) {
@@ -119,6 +112,8 @@ internal fun TagScreen(
     LaunchedEffect(stateLinkCreating) {
         when (stateLinkCreating) {
             is ApiResult.Success -> {
+                showShareImageBottomSheet = false
+                showLinkAddBottomSheet = false
                 Toast.makeText(
                     context,
                     "Link added successfully",
@@ -159,6 +154,7 @@ internal fun TagScreen(
                 onDismissRequest = {
                     showTagAddBottomSheet = false
                     viewModel.updateUrl(null)
+                    onConsumeSharedIntent()
                 },
                 onSubmitWithEditTextValue = viewModel::createTag,
                 modifier = Modifier.fillMaxWidth(),
@@ -173,6 +169,7 @@ internal fun TagScreen(
                 onDismissRequest = {
                     showShareImageBottomSheet = false
                     viewModel.updateUrl(null)
+                    onConsumeSharedIntent()
                 },
                 onSubmit = { imageUri, tagName ->
                     viewModel.createLink(imageUri, tagName)
@@ -189,6 +186,7 @@ internal fun TagScreen(
                 onDismissRequest = {
                     showLinkAddBottomSheet = false
                     viewModel.updateUrl(null)
+                    onConsumeSharedIntent()
                 },
                 onSubmit = viewModel::createLink,
                 modifier = Modifier.fillMaxWidth(),

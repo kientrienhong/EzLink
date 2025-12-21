@@ -24,6 +24,20 @@ abstract class LinkDao {
     @Query("SELECT * FROM link Where tagName = :tagName")
     abstract fun getLinkList(tagName: String): List<Link>
 
+    @Query("SELECT * FROM link WHERE tagName = :tagName LIMIT :limit OFFSET :offset")
+    abstract suspend fun getLinks(tagName: String, offset: Int, limit: Int): List<Link>
+
+    @Query(
+        """
+        SELECT link.*
+        FROM link
+        JOIN link_fts ON link_fts.rowid = link.id
+        WHERE link_fts MATCH :query
+        LIMIT :limit OFFSET :offset
+    """
+    )
+    abstract suspend fun searchPaged(query: String, offset: Int, limit: Int): List<Link>
+
     @Query("DELETE FROM link Where tagName = :tagName")
     abstract fun deleteLinksByTagName(tagName: String): Int
 

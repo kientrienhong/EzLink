@@ -43,18 +43,13 @@ fun <T> AddLinkBottomSheet(
     dropDownEnabled: Boolean = true,
     urlInputEnabled: Boolean = true
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        confirmValueChange = { newState ->
-            newState != SheetValue.Hidden //  Stop bottom sheet from hiding on outside press
-        }
-    )
+    val sheetState = rememberModalBottomSheetState()
     LaunchedEffect(result) {
         when (result) {
             is ApiResult.Success -> {
                 sheetState.hide()
                 onDismissRequest()
             }
-
             is ApiResult.Error,
             is ApiResult.Loading,
             null -> Unit

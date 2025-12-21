@@ -2,6 +2,7 @@ package com.timeskip.ezlink.features.link.data
 
 import android.content.Context
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.timeskip.ezlink.features.common.ImageStorageHelper
 import com.timeskip.ezlink.features.contentHtml.ContentHtmlDao
 import com.timeskip.ezlink.features.db.DatabaseTransactionRunner
@@ -56,4 +57,17 @@ class LinkRepositoryImpl @Inject constructor(
         }
         return true
     }
+
+    override fun getPagedLinkListLiveData(tagName: String, pageSize: Int): LiveData<List<Link>> {
+        val liveData = MutableLiveData<List<Link>>()
+        // Start with first page; callers will explicitly request more items
+        liveData.value = emptyList()
+        return liveData
+    }
+
+    override suspend fun getLinks(tagName: String, offset: Int, limit: Int): List<Link> =
+        linkDao.getLinks(tagName, offset, limit)
+
+    override suspend fun searchPaged(query: String, offset: Int, limit: Int): List<Link> =
+        linkDao.searchPaged(query, offset, limit)
 }

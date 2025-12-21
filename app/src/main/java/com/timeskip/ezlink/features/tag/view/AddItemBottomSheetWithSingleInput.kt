@@ -43,11 +43,7 @@ fun <T> AddItemBottomSheetWithSingleInput(
     onSubmitWithEditTextValue: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        confirmValueChange = { newState ->
-            newState != SheetValue.Hidden //  Stop bottom sheet from hiding on outside press
-        }
-    )
+    val sheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
     LaunchedEffect(stateCreate) {
         when (stateCreate) {

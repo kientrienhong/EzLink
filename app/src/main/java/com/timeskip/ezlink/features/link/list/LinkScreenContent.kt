@@ -15,11 +15,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -30,6 +35,9 @@ import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.link.data.Link
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 
 @SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -42,8 +50,31 @@ internal fun LinkScreenContent(
     onNavigateToEditor: (Link, Boolean) -> Unit,
     updateSearchValue: (String) -> Unit,
     onLongClickItem: (Link) -> Unit,
-    modifier: Modifier = Modifier
+    onLoadMore: () -> Unit,
+    modifier: Modifier = Modifier,
+    isLoadingMore: Boolean = false
 ) {
+    val items = listLink.orEmpty()
+    val gridState = rememberLazyStaggeredGridState()
+
+    LaunchedEffect(gridState) {
+        snapshotFlow { gridState.layoutInfo }
+            .map { layoutInfo ->
+                val totalItemsCount = layoutInfo.totalItemsCount
+                val lastVisibleIndex =
+                    layoutInfo.visibleItemsInfo.maxOfOrNull { it.index } ?: 0
+                totalItemsCount to lastVisibleIndex
+            }
+            .distinctUntilChanged()
+            .filter { (total, lastVisible) ->
+                total > 0 && lastVisible >= total - 4
+            }
+            .collect {
+                onLoadMore()
+            }
+    }
+
+
     Column(modifier.fillMaxSize()) {
         LinkScreenHeader(
             tagName = tagName,
@@ -66,14 +97,16 @@ internal fun LinkScreenContent(
                 .fillMaxWidth()
                 .padding(top = 8.dp, bottom = 8.dp)
         )
+
         LazyVerticalStaggeredGrid(
+            state = gridState,
             columns = StaggeredGridCells.Fixed(count = 2),
             contentPadding = PaddingValues(vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalItemSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (listLink?.isEmpty() == true) {
+            if (items.isEmpty() && !isLoadingMore) {
                 item(span = StaggeredGridItemSpan.FullLine) {
                     val emptyMessage = if (searchValue.isNotEmpty()) {
                         "No links found for '$searchValue'. Click the '+' button to create a new link."
@@ -90,14 +123,35 @@ internal fun LinkScreenContent(
                 }
             }
 
-            items(listLink?.size ?: 0) {
+            items(items) { link ->
                 LinkItem(
-                    listLink.orEmpty()[it],
-                    onNavigateToEditor = { link -> onNavigateToEditor(link, true /* isEdit */) },
+                    link,
+                    onNavigateToEditor = { selected ->
+                        onNavigateToEditor(selected, true /* isEdit */)
+                    },
                     onLongClick = onLongClickItem
                 )
             }
+
+            // Bottom loading indicator
+            if (isLoadingMore && items.isNotEmpty()) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
+            }
         }
+
+
     }
 }
 
@@ -121,7 +175,9 @@ private fun LinkScreenContentPreview() {
             popBackStack = {},
             onNavigateToEditor = { _, _ -> },
             updateSearchValue = {},
-            onLongClickItem = {}
+            onLongClickItem = {},
+            onLoadMore = {},
+            isLoadingMore = false
         )
     }
 }

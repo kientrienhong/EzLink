@@ -43,8 +43,10 @@ internal fun LinkScreen(
     val viewModel = hiltViewModel<LinkScreenViewModel>()
     val createLinkResult by viewModel.createLinkLiveData.observeAsState()
     val listLink by viewModel.linkListLiveData.observeAsState()
-    val searchValue by viewModel.searchLiveData.observeAsState()
+    val searchValue by viewModel.searchLiveData.observeAsState("")
     val deleteLinkResult by viewModel.deleteLinkLiveData.observeAsState()
+    val isLoadingMore by viewModel.isLoadingMore.observeAsState(false)
+    val hasMoreItems by viewModel.hasMoreItems.observeAsState(true)
     var showBottomSheet by remember { mutableStateOf(false) }
     var currentSelectedLink by remember { mutableStateOf<Link?>(null) }
 
@@ -94,7 +96,13 @@ internal fun LinkScreen(
             navigateToLinkEditor,
             viewModel::updateSearch,
             { currentSelectedLink = it },
-            modifier = Modifier.fillMaxSize()
+            onLoadMore = {
+                if (!isLoadingMore && hasMoreItems) {
+                    viewModel.loadNextPage()
+                }
+            },
+            modifier = Modifier.fillMaxSize(),
+            isLoadingMore = isLoadingMore
         )
         if (showBottomSheet) {
             AddLinkBottomSheet(

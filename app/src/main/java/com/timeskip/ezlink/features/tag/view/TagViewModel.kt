@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
+import com.timeskip.ezlink.features.common.LinkUrlHelper
 import com.timeskip.ezlink.features.common.TagShortcutManager
 import com.timeskip.ezlink.features.common.UrlValidateUtils
 import com.timeskip.ezlink.features.common.UrlValidateUtils.isValidFileUri
@@ -126,9 +127,15 @@ class TagViewModel @Inject constructor(
 
             val result = when (validationResult) {
                 is ApiResult.Success -> {
-                    val resultInsert = linkRepository.insertLink(validationResult.data)
+                    val link = if (isWebUrl) {
+                        val domain = LinkUrlHelper.getDomain(url)
+                        validationResult.data.copy(iconUrl = getIconUrl(domain))
+                    } else {
+                        validationResult.data
+                    }
+                    val resultInsert = linkRepository.insertLink(link)
                     if (resultInsert) {
-                        ApiResult.Success(validationResult.data)
+                        ApiResult.Success(link)
                     } else {
                         ApiResult.Error(Exception("Failed to insert link"))
                     }
@@ -155,4 +162,6 @@ class TagViewModel @Inject constructor(
         val backgroundColor = Color(resource.color)
         return TagViewItem(this, backgroundColor, resource.iconRes)
     }
+
+    private fun getIconUrl(domain: String): String = "https://logo.clearbit.com/$domain"
 }
