@@ -44,19 +44,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.integration.compose.placeholder
 import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.ConnectivityObserver
+import com.timeskip.ezlink.features.common.ImageStorageHelper
 import com.timeskip.ezlink.features.common.views.WebViewWithTimeout
 import com.timeskip.ezlink.features.contentHtml.ContentHtml
 import com.timeskip.ezlink.features.link.data.Link
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun LinkDetailScreen(
     link: Link,
@@ -146,17 +152,30 @@ fun LinkDetailScreen(
                         .background(MaterialTheme.colorScheme.surface)
                         .verticalScroll(scrollState)
                 ) {
-                    WebViewWithTimeout(
-                        link.url,
-                        Modifier
-                            .fillMaxSize()
-                            .align(Alignment.Center),
-                        webViewError,
-                        contentHtml?.content,
-                        networkStatus = networkStatus,
-                        updateWebViewError = { webViewError = it },
-                        updateContent = { viewModel.refreshContentHtml(link.id ?: 0, link.url) }
-                    )
+                    if (ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+                        // Display local stored image
+                        GlideImage(
+                            model = link.url,
+                            contentDescription = "Shared image",
+                            modifier = Modifier.align(Alignment.Center),
+                            contentScale = ContentScale.Fit,
+                            loading = placeholder(R.drawable.picture),
+                            failure = placeholder(R.drawable.picture)
+                        )
+                    } else {
+                        // Display web URL in WebView
+                        WebViewWithTimeout(
+                            link.url,
+                            Modifier
+                                .fillMaxSize()
+                                .align(Alignment.Center),
+                            webViewError,
+                            contentHtml?.content,
+                            networkStatus = networkStatus,
+                            updateWebViewError = { webViewError = it },
+                            updateContent = { viewModel.refreshContentHtml(link.id ?: 0, link.url) }
+                        )
+                    }
                 }
             }
         }

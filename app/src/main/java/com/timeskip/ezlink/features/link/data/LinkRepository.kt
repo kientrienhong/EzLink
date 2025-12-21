@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.features.link.data
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import com.timeskip.ezlink.features.tag.data.Tag
 
@@ -16,5 +17,5 @@ interface LinkRepository {
 
     suspend fun search(query: String): List<Link>
 
-    suspend fun deleteLink(link: Link): Boolean
+    suspend fun deleteLink(context: Context, link: Link): Boolean
 }

@@ -1,5 +1,7 @@
 package com.timeskip.ezlink.features.link.list
 
+import android.content.Context
+import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,13 +12,14 @@ import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.debounce
 import com.timeskip.ezlink.features.common.runBlocking
-import com.timeskip.ezlink.features.common.LinkValidateUtils
+import com.timeskip.ezlink.features.common.UrlValidateUtils
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.data.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -89,7 +92,15 @@ class LinkScreenViewModel @Inject constructor(
                 return@launch
             }
             createLinkMutableLiveData.postValue(ApiResult.Loading())
-            val validationResult = LinkValidateUtils.validateUrl(tagName.orEmpty(), url)
+            val isWebUrl = Patterns.WEB_URL.matcher(url).matches()
+            val isFilePath = File(url).exists()
+            val validationResult = when {
+                isWebUrl -> UrlValidateUtils.validateUrl(tagName.orEmpty(), url)
+                isFilePath -> UrlValidateUtils.validateUri(tagName.orEmpty(), url)
+                else -> throw IllegalArgumentException(
+                    "URL is neither a valid web URL nor a valid file path"
+                )
+            }
             val result = when (validationResult) {
                 is ApiResult.Success -> {
                     val resultInsert = repository.insertLink(validationResult.data)
@@ -99,7 +110,6 @@ class LinkScreenViewModel @Inject constructor(
                         ApiResult.Error(Exception("Failed to insert link"))
                     }
                 }
-
                 is ApiResult.Error -> ApiResult.Error(validationResult.exception)
                 is ApiResult.Loading -> ApiResult.Loading()
             }
@@ -121,7 +131,7 @@ class LinkScreenViewModel @Inject constructor(
         createLinkMutableLiveData.value = null
     }
 
-    fun deleteLink(link: Link) {
+    fun deleteLink(context: Context, link: Link) {
         viewModelScope.launch {
             if (deleteLinkLiveData.value is ApiResult.Loading) {
                 return@launch
@@ -130,7 +140,7 @@ class LinkScreenViewModel @Inject constructor(
             deleteLinkMutableLiveData.value = ApiResult.Loading()
 
             val result = runBlocking(
-                onBlocking = { repository.deleteLink(link) },
+                onBlocking = { repository.deleteLink(context, link) },
                 onSuccess = { ApiResult.Success(it) },
                 onError = { ApiResult.Error(it) }
             )

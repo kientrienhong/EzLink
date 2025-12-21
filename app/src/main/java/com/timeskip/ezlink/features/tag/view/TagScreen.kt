@@ -3,6 +3,7 @@ package com.timeskip.ezlink.features.tag.view
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.timeskip.ezlink.R
 import com.timeskip.ezlink.features.common.ApiResult
+import com.timeskip.ezlink.features.common.ImageStorageHelper
 import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.tag.data.Tag
@@ -49,33 +51,53 @@ import com.timeskip.ezlink.features.tag.fab.MultiFloatingActionButton
 
 @Composable
 internal fun TagScreen(
-    sharedTagName: String?,
-    sharedUrl: String?,
     modifier: Modifier,
     onTagClick: (String) -> Unit,
     onSearchClick: (String) -> Unit,
-    resetSharedData: () -> Unit,
+    sharedUrl: String?,
+    sharedTagName: String?,
+    onConsumeSharedIntent: () -> Unit,
 ) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<TagViewModel>()
+
     val stateFlowTagList by viewModel.tagListLiveData.observeAsState(emptyList())
     val stateFlowInitialLoad by viewModel.initialLoadLiveData.observeAsState(ApiResult.Loading())
     val stateTagCreating by viewModel.createTagLiveData.observeAsState()
     val stateLinkCreating by viewModel.createLinkLiveData.observeAsState()
     val stateDeleteTagResult by viewModel.deleteTagLiveData.observeAsState()
     val url by viewModel.urlLiveData.observeAsState(sharedUrl)
+
     var showTagAddBottomSheet by remember { mutableStateOf(false) }
     var showLinkAddBottomSheet by remember { mutableStateOf(false) }
+    var showShareImageBottomSheet by remember { mutableStateOf(false) }
     var currentSelectedTag by remember { mutableStateOf<Tag?>(null) }
+    var urlTextInputEnabled by remember { mutableStateOf(true) }
 
     LaunchedEffect(sharedTagName, sharedUrl) {
+        Log.d("TagScreen", "sharedTagName: $sharedTagName, sharedUrl: $sharedUrl")
+
         if (sharedTagName != null && sharedUrl != null) {
             viewModel.createLink(sharedUrl, sharedTagName)
-            resetSharedData()
+            urlTextInputEnabled = false
+            // We'll consume after the createLink result succeeds.
         } else if (sharedUrl != null) {
-            viewModel.updateUrl(sharedUrl)
-            showLinkAddBottomSheet = true
-            resetSharedData()
+            if (ImageStorageHelper.isImageUrl(sharedUrl)) {
+                showShareImageBottomSheet = true
+            } else {
+                viewModel.updateUrl(sharedUrl)
+                showLinkAddBottomSheet = true
+                urlTextInputEnabled = false
+            }
+        } else {
+            urlTextInputEnabled = true
+        }
+    }
+
+    LaunchedEffect(showTagAddBottomSheet, showLinkAddBottomSheet, showShareImageBottomSheet) {
+        // Consume only when ALL sheets are closed (your previous OR condition reset too eagerly).
+        if (!showTagAddBottomSheet && !showLinkAddBottomSheet && !showShareImageBottomSheet) {
+            onConsumeSharedIntent()
         }
     }
 
@@ -102,6 +124,7 @@ internal fun TagScreen(
                     "Link added successfully",
                     Toast.LENGTH_LONG
                 ).show()
+                onConsumeSharedIntent()
                 viewModel.resetCreateLinkLiveData()
             }
 
@@ -141,6 +164,22 @@ internal fun TagScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+        if (showShareImageBottomSheet) {
+            ShareImageBottomSheet(
+                imageUrl = sharedUrl.orEmpty(),
+                listTagName = stateFlowTagList.map { it.tag.name },
+                result = stateLinkCreating,
+                tagName = "",
+                onDismissRequest = {
+                    showShareImageBottomSheet = false
+                    viewModel.updateUrl(null)
+                },
+                onSubmit = { imageUri, tagName ->
+                    viewModel.createLink(imageUri, tagName)
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         if (showLinkAddBottomSheet) {
             AddLinkBottomSheet(
                 listTagName = stateFlowTagList.map { it.tag.name },
@@ -153,6 +192,7 @@ internal fun TagScreen(
                 },
                 onSubmit = viewModel::createLink,
                 modifier = Modifier.fillMaxWidth(),
+                urlInputEnabled = urlTextInputEnabled
             )
         }
         MultiFloatingActionButton(
@@ -278,6 +318,3 @@ private fun PreviewTagScreenMainContent() {
         onSearchClick = {}
     )
 }
-
-
-

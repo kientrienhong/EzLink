@@ -9,28 +9,41 @@ import androidx.navigation.compose.NavHost
 import com.timeskip.ezlink.features.link.linkGraph
 import com.timeskip.ezlink.features.link.linkSearchGraph
 import com.timeskip.ezlink.features.link.navigateToLink
+import com.timeskip.ezlink.features.tag.popUpToTagListOrNavigate
 import com.timeskip.ezlink.features.tag.tagGraph
 
 @Composable
 fun AppNavHost(
-    sharedTagName: String?,
-    sharedUrl: String?,
     navController: NavHostController,
-    resetSharedData: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
+    sharedUrl: String?,
+    sharedTagName: String?,
+    onConsumeSharedIntent: () -> Unit,
 ) {
-    NavHost(navController, startDestination = TagNavigation) {
-        tagGraph(sharedTagName, sharedUrl, navController, resetSharedData, modifier)
-        linkGraph(navController, modifier)
-        linkSearchGraph(navController, modifier)
-    }
-
     LaunchedEffect(sharedTagName, sharedUrl) {
         if (sharedTagName != null && sharedUrl == null) {
             navController.navigateToLink(
                 sharedTagName,
                 NavOptions.Builder().setLaunchSingleTop(true).build()
             )
+            onConsumeSharedIntent()
+        } else if (sharedUrl != null) {
+            navController.popUpToTagListOrNavigate(
+                NavOptions.Builder().setLaunchSingleTop(true).build()
+            )
         }
+    }
+
+
+    NavHost(navController, startDestination = TagNavigation) {
+        tagGraph(
+            navController = navController,
+            modifier = modifier,
+            sharedUrl = sharedUrl,
+            sharedTagName = sharedTagName,
+            onConsumeSharedIntent = onConsumeSharedIntent,
+        )
+        linkGraph(navController, modifier)
+        linkSearchGraph(navController, modifier)
     }
 }

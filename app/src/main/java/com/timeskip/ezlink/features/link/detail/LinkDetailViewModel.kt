@@ -7,6 +7,7 @@ import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.ConnectivityObserver
+import com.timeskip.ezlink.features.common.ImageStorageHelper
 import com.timeskip.ezlink.features.common.LinkUrlHelper
 import com.timeskip.ezlink.features.common.runBlocking
 import com.timeskip.ezlink.features.contentHtml.ContentHtml
@@ -127,5 +128,33 @@ class LinkDetailViewModel @Inject constructor(
 
     fun resetCrawlWebResult() {
         crawlWebResultMutableLiveData.value = null
+    }
+
+    /**
+     * Move cached image to permanent storage when creating the link
+     * @param cacheImageUri URI of the cached image
+     * @param onSuccess Callback with the permanent image URI
+     */
+    @Suppress("unused")
+    suspend fun moveCacheImageToPermanent(
+        context: android.content.Context,
+        cacheImageUri: String,
+    ): String? = ImageStorageHelper.moveCacheImageToPermanent(context, cacheImageUri)
+
+    /**
+     * Clear all cached images after successful link creation
+     */
+    @Suppress("unused")
+    fun clearCacheImages(context: android.content.Context) {
+        viewModelScope.launch {
+            try {
+                ImageStorageHelper.clearCacheImages(context)
+            } catch (canceled: CancellationException) {
+                throw canceled
+            } catch (e: Exception) {
+                // Log but don't fail - cache clearing is optional
+                android.util.Log.w("LinkDetailViewModel", "Failed to clear cache images", e)
+            }
+        }
     }
 }

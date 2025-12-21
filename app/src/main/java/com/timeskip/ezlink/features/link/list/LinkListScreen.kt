@@ -116,7 +116,7 @@ internal fun LinkScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            viewModel.deleteLink(currentSelectedLink ?: return@TextButton)
+                            viewModel.deleteLink(context, currentSelectedLink ?: return@TextButton)
                         }
                     ) {
                         Text("Delete")

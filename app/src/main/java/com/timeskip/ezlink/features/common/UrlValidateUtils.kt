@@ -5,16 +5,68 @@ import android.util.Patterns
 import com.timeskip.ezlink.features.link.LinkRetryStep
 import com.timeskip.ezlink.features.link.data.Link
 import org.jsoup.HttpStatusException
+import java.io.File
+import java.io.IOException
 import java.lang.Thread.sleep
 
-object LinkValidateUtils {
+object UrlValidateUtils {
+    fun isValidFileUri(uri: String): Boolean {
+        return try {
+            val filePath = if (uri.startsWith("file://")) {
+                uri.removePrefix("file://")
+            } else {
+                uri
+            }
+            File(filePath).exists()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun validateUri(
+        tagName: String,
+        uri: String,
+    ): ApiResult<Link> = try {
+        Log.d("UrlValidateUtils", "Validating file URI: $uri")
+        val file = File(uri)
+        if (!file.exists() || !file.isFile) {
+            throw IllegalArgumentException("Cannot find file at the given URI")
+        }
+
+        if (!isImageFile(uri)) {
+            throw IllegalArgumentException("We only support image files")
+        }
+
+        val link = Link(
+            url = uri,
+            tagName = tagName,
+            iconUrl = uri,
+            title = "",
+            description = ""
+        )
+        ApiResult.Success(link)
+
+    } catch (_: IOException) {
+        ApiResult.Error(IllegalArgumentException("Cannot find file at the given URI"))
+    } catch (illegalArgEx: IllegalArgumentException) {
+        ApiResult.Error(illegalArgEx)
+    } catch (e: Exception) {
+        ApiResult.Error(IllegalArgumentException("Invalid URI: ${e.message}"))
+    }
+
+    private fun isImageFile(uri: String): Boolean {
+        val imageExtensions = setOf("jpg", "jpeg", "png", "webp", "bmp")
+        val extension = uri.substringAfterLast(".").lowercase()
+        return extension in imageExtensions
+    }
+
     suspend fun validateUrl(
         tagName: String,
         url: String,
         delayMillis: Long = 200,
         retryStep: LinkRetryStep? = LinkRetryStep.getInitialStep()
     ): ApiResult<Link> {
-        if(retryStep == null) {
+        if (retryStep == null) {
             return ApiResult.Error(IllegalArgumentException("Invalid URL"))
         }
 
@@ -49,7 +101,7 @@ object LinkValidateUtils {
             ApiResult.Success(link)
         } catch (e: IllegalArgumentException) {
             Log.e("LinkScreenViewModel", "Error validating URL: ${e.message}")
-            if(retryStep?.isLast() == false) {
+            if (retryStep?.isLast() == false) {
                 Log.d("LinkScreenViewModel", "Retrying with next URL format")
                 validateUrl(tagName, originalUrl, delayMillis, retryStep.nextStep)
             } else {

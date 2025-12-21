@@ -1,6 +1,8 @@
 package com.timeskip.ezlink.features.link.data
 
+import android.content.Context
 import androidx.lifecycle.LiveData
+import com.timeskip.ezlink.features.common.ImageStorageHelper
 import com.timeskip.ezlink.features.contentHtml.ContentHtmlDao
 import com.timeskip.ezlink.features.db.DatabaseTransactionRunner
 import com.timeskip.ezlink.features.tag.data.Tag
@@ -42,7 +44,12 @@ class LinkRepositoryImpl @Inject constructor(
 
     override suspend fun search(query: String): List<Link> = linkDao.search(query)
 
-    override suspend fun deleteLink(link: Link): Boolean {
+    override suspend fun deleteLink(context: Context, link: Link): Boolean {
+        // Delete stored image if it's a local file
+        if (ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+            ImageStorageHelper.deleteImage(context, link.url)
+        }
+
         databaseTransactionRunner.withTransaction {
             linkDao.deleteLink(link)
             contentHtmlDao.deleteContentHtml(link.id ?: return@withTransaction)

@@ -1,63 +1,67 @@
 package com.timeskip.ezlink
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.lifecycleScope
+import com.timeskip.ezlink.features.common.ImageStorageHelper
 import com.timeskip.ezlink.features.common.TagShortcutManager
 import com.timeskip.ezlink.ui.theme.LinkKeeperTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val viewModel by viewModels<MainViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         installSplashScreen()
         setContent {
+            val sharedUrl by viewModel.sharedUrlLiveData.observeAsState()
+            val sharedTagName by viewModel.sharedTagNameLiveData.observeAsState()
+
             LinkKeeperTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    var sharedUrl by remember { mutableStateOf<String?>(null) }
-                    var sharedTagName by remember { mutableStateOf<String?>(null) }
-
-                    LifecycleResumeEffect(intent) {
-                        val (url, tagName) = handleIntent(intent)
-                        sharedUrl = url
-                        sharedTagName = tagName
-                        Log.d("MainActivity", "Handled intent: intent $intent")
-
-                        Log.d("MainActivity", "Handled intent: url=$url, tagName=$tagName")
-                        onPauseOrDispose {
-                        }
-                    }
-
                     MainContainer(
-                        sharedTagName,
-                        sharedUrl,
-                        resetSharedData = {
-                            sharedTagName = null
-                            sharedUrl = null
-                        },
-                        Modifier.padding(innerPadding)
+                        modifier = Modifier.padding(innerPadding),
+                        sharedUrl = sharedUrl,
+                        sharedTagName = sharedTagName,
+                        onConsumeSharedIntent = viewModel::reset
                     )
                 }
             }
         }
     }
 
-    private fun handleIntent(intent: Intent): Pair<String?, String?> {
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        Log.d("MainActivity", "intent $intent")
+
+        lifecycleScope.launch {
+            val (sharedUrl, sharedTagName) = handleIntent(intent)
+            Log.d("MainActivity", "onNewIntent: sharedUrl=$sharedUrl, sharedTagName=$sharedTagName")
+            viewModel.setSharedUrl(sharedUrl)
+            viewModel.setSharedTagName(sharedTagName)
+            Log.d("MainActivity", "viewModel $viewModel")
+
+        }
+    }
+
+    private suspend fun handleIntent(intent: Intent): Pair<String?, String?> {
         return when (intent.action) {
             TagShortcutManager.ACTION_SHORTCUT -> handleDirectShareIntent(intent)
             Intent.ACTION_SEND -> handleShareIntent(intent)
@@ -70,9 +74,29 @@ class MainActivity : ComponentActivity() {
         return null to tagName
     }
 
-    private fun handleShareIntent(intent: Intent): Pair<String?, String?> {
-        val url = intent.getStringExtra(Intent.EXTRA_TEXT)
+    private suspend fun handleShareIntent(intent: Intent): Pair<String?, String?> {
+        val type = intent.type
         val tagName = intent.getStringExtra("android.intent.extra.shortcut.ID")
-        return url to tagName
+
+        return when {
+            type == "text/plain" -> {
+                val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+                sharedText to tagName
+            }
+
+            type?.startsWith("image/") == true -> {
+                @Suppress("DEPRECATION")
+                val imageUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+                if (imageUri != null) {
+                    val cachedImageUri =
+                        ImageStorageHelper.compressAndStoreImageInCache(this, imageUri)
+                    cachedImageUri to tagName
+                } else {
+                    null to tagName
+                }
+            }
+
+            else -> null to tagName
+        }
     }
 }

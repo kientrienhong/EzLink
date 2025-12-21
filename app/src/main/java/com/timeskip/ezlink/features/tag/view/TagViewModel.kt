@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.features.tag.view
 
+import android.util.Patterns
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,8 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
-import com.timeskip.ezlink.features.common.LinkValidateUtils
 import com.timeskip.ezlink.features.common.TagShortcutManager
+import com.timeskip.ezlink.features.common.UrlValidateUtils
+import com.timeskip.ezlink.features.common.UrlValidateUtils.isValidFileUri
 import com.timeskip.ezlink.features.common.runBlocking
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.data.LinkRepository
@@ -108,7 +110,20 @@ class TagViewModel @Inject constructor(
                 return@launch
             }
             createLinkMutableLiveData.postValue(ApiResult.Loading())
-            val validationResult = LinkValidateUtils.validateUrl(tagName, url)
+            val isWebUrl = Patterns.WEB_URL.matcher(url).matches()
+            val isFilePath = isValidFileUri(url)
+            val validationResult = try {
+                when {
+                    isWebUrl -> UrlValidateUtils.validateUrl(tagName, url)
+                    isFilePath -> UrlValidateUtils.validateUri(tagName, url)
+                    else -> throw IllegalArgumentException("Invalid Url")
+                }
+            } catch (e: IllegalArgumentException) {
+                val result = ApiResult.Error<Link>(e)
+                createLinkMutableLiveData.postValue(result)
+                return@launch
+            }
+
             val result = when (validationResult) {
                 is ApiResult.Success -> {
                     val resultInsert = linkRepository.insertLink(validationResult.data)
