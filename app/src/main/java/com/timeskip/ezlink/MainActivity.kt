@@ -29,15 +29,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         installSplashScreen()
         setContent {
-            val sharedUrl by viewModel.sharedUrlLiveData.observeAsState()
-            val sharedTagName by viewModel.sharedTagNameLiveData.observeAsState()
+            val shareInfo by viewModel.sharedInfoLiveData.observeAsState()
 
             LinkKeeperTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainContainer(
+                        shareInfoModel = shareInfo,
                         modifier = Modifier.padding(innerPadding),
-                        sharedUrl = sharedUrl,
-                        sharedTagName = sharedTagName,
                         onConsumeSharedIntent = viewModel::reset
                     )
                 }
@@ -50,9 +48,8 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         lifecycleScope.launch {
             val (sharedUrl, sharedTagName) = handleIntent(intent)
-            viewModel.setSharedUrl(sharedUrl)
-            viewModel.setSharedTagName(sharedTagName)
-
+            val shareInfoModel = ShareInfoModel(sharedUrl, sharedTagName)
+            viewModel.setSharedUrl(shareInfoModel)
         }
     }
 

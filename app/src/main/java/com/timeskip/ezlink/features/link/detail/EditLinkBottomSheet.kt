@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.ApiResult
+import com.timeskip.ezlink.features.common.ImageStorageHelper
 import com.timeskip.ezlink.features.common.views.MyInputDropdown
 import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.link.data.Link
@@ -86,15 +87,23 @@ private fun EditLinkBottomSheetContent(
     onSubmit: (Link) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var url by remember { mutableStateOf(link.url) }
     var tagName by remember { mutableStateOf(link.tagName) }
     var description by remember { mutableStateOf(link.description) }
+    var title by remember { mutableStateOf(link.title) }
+    val labelOfUrl = if (ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+        "Path"
+    } else {
+        "Url"
+    }
 
     Column(modifier = modifier.padding(vertical = 16.dp, horizontal = 16.dp)) {
         Text("Add link")
         Spacer(modifier = Modifier.height(8.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
+            label = labelOfUrl,
             value = url,
             onChange = { url = it },
             enabled = false,
@@ -103,6 +112,18 @@ private fun EditLinkBottomSheetContent(
         Spacer(modifier = Modifier.height(8.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
+            label = "Title",
+            value = title,
+            onChange = { title = it },
+            enabled = true,
+            minLines = 3,
+            maxLines = 6,
+            shape = MaterialTheme.shapes.small
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        MyTextField(
+            modifier = Modifier.fillMaxWidth(),
+            label = "Description",
             value = description,
             onChange = { description = it },
             enabled = true,
@@ -126,7 +147,9 @@ private fun EditLinkBottomSheetContent(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(modifier = Modifier.padding(end = 24.dp), onClick = { onDismissRequest() }) {
+            TextButton(
+                modifier = Modifier.padding(end = 24.dp),
+                onClick = { onDismissRequest() }) {
                 Text("cancel")
             }
             if (result is ApiResult.Loading) {
@@ -134,6 +157,7 @@ private fun EditLinkBottomSheetContent(
             } else {
                 Button(onClick = {
                     val link = link.copy(
+                        title = title,
                         url = url,
                         tagName = tagName,
                         description = description

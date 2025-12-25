@@ -2,9 +2,7 @@ package com.timeskip.ezlink.features.tag.view
 
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
-import androidx.compose.ui.graphics.Color
 import com.timeskip.ezlink.R
-import com.timeskip.ezlink.features.tag.data.Tag
 
 enum class TagResource(
     val nameTag: String,

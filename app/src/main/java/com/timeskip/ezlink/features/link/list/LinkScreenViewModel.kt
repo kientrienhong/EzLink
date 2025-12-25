@@ -38,7 +38,7 @@ class LinkScreenViewModel @Inject constructor(
     private val createLinkMutableLiveData: MutableLiveData<ApiResult<Link>?> = MutableLiveData()
     val createLinkLiveData: LiveData<ApiResult<Link>?> = createLinkMutableLiveData
 
-    private val listLinkMediatorLiveData: MutableLiveData<List<Link>> = MediatorLiveData()
+    private val listLinkMediatorLiveData: MediatorLiveData<List<Link>> = MediatorLiveData()
     val linkListLiveData: LiveData<List<Link>> = listLinkMediatorLiveData
 
     private val deleteLinkMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
@@ -85,6 +85,20 @@ class LinkScreenViewModel @Inject constructor(
             }
             listLinkMediatorLiveData.value = links
         }
+        listLinkMediatorLiveData.addSource(deleteLinkLiveData) {
+            viewModelScope.launch {
+                if (deleteLinkLiveData.value is ApiResult.Success) {
+                    val result = withContext(Dispatchers.IO) {
+                        if (searchLiveData.value?.isBlank() == true) {
+                            loadNextPageInternal(reset = true)
+                        } else {
+                            loadNextPageInternal(searchQuery = searchLiveData.value, reset = true)
+                        }
+                    }
+                    listLinkMediatorLiveData.value = result
+                }
+            }
+        }
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -111,7 +125,7 @@ class LinkScreenViewModel @Inject constructor(
 
             val result = when (validationResult) {
                 is ApiResult.Success -> {
-                    val link = if(isWebUrl) {
+                    val link = if (isWebUrl) {
                         val domain = LinkUrlHelper.getDomain(url)
                         validationResult.data.copy(iconUrl = getIconUrl(domain))
                     } else {
@@ -124,6 +138,7 @@ class LinkScreenViewModel @Inject constructor(
                         ApiResult.Error(Exception("Failed to insert link"))
                     }
                 }
+
                 is ApiResult.Error -> ApiResult.Error(validationResult.exception)
                 is ApiResult.Loading -> ApiResult.Loading()
             }

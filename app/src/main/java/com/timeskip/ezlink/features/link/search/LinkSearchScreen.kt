@@ -108,7 +108,7 @@ internal fun LinkSearchScreen(
             enabled = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp, bottom = 8.dp)
+                .padding(bottom = 8.dp)
                 .focusRequester(focusRequester)
         )
         Spacer(modifier = Modifier.height(24.dp))

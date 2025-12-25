@@ -6,7 +6,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.timeskip.ezlink.features.link.search.LinkSearchContainer
-import com.timeskip.ezlink.features.link.search.LinkSearchScreen
 import com.timeskip.ezlink.navigation.LinkDestination
 import com.timeskip.ezlink.navigation.LinkSearchNavigation
 

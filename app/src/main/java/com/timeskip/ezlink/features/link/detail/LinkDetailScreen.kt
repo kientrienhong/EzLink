@@ -3,6 +3,7 @@ package com.timeskip.ezlink.features.link.detail
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -81,6 +82,11 @@ fun LinkDetailScreen(
     var isOpenDialog by remember { mutableStateOf(false) }
     val listTagName by viewModel.listTagName.observeAsState(emptyList())
     val link by viewModel.linkLiveData.observeAsState(link)
+    val bottomPaddingValue = if(ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+        16.dp
+    } else {
+        100.dp
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -120,7 +126,7 @@ fun LinkDetailScreen(
         )
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(bottom = 100.dp),
+            contentPadding = PaddingValues(bottom = bottomPaddingValue),
             modifier = Modifier
                 .padding(top = 40.dp)
                 .fillMaxSize()
@@ -158,7 +164,7 @@ fun LinkDetailScreen(
                             model = link.url,
                             contentDescription = "Shared image",
                             modifier = Modifier.align(Alignment.Center),
-                            contentScale = ContentScale.Fit,
+                            contentScale = ContentScale.FillBounds,
                             loading = placeholder(R.drawable.picture),
                             failure = placeholder(R.drawable.picture)
                         )
@@ -180,24 +186,26 @@ fun LinkDetailScreen(
             }
         }
 
-        Button(
-            onClick = {
-                val browserIntent = Intent(Intent.ACTION_VIEW, link.url.toUri())
-                context.startActivity(browserIntent)
-            },
-            modifier = modifier
-                .padding(bottom = 24.dp)
-                .height(56.dp)
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter),
-            shape = MaterialTheme.shapes.small,
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
-        ) {
-            Text(
-                text = "Open website",
-                style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
-            )
+        if (!ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+            Button(
+                onClick = {
+                    val browserIntent = Intent(Intent.ACTION_VIEW, link.url.toUri())
+                    context.startActivity(browserIntent)
+                },
+                modifier = modifier
+                    .padding(bottom = 24.dp)
+                    .height(56.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
+                shape = MaterialTheme.shapes.small,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+            ) {
+                Text(
+                    text = "Open website",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
+                )
+            }
         }
         if (isAlertOpen) {
             AlertDialog(
@@ -262,46 +270,50 @@ private fun LinkEditorScreenHeader(
             Arrangement.End
         }
     }
+    val isWebUrl =
 
-    Row(
-        modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = horizontalArrangement
-    ) {
-        if (isBackArrowVisible) {
-            Image(
-                painterResource(R.drawable.arrow_left),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable { popNavigation() }
-            )
-        }
         Row(
-            modifier = Modifier.padding(bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = horizontalArrangement
         ) {
-            if (webViewError != WebViewError.CONNECTION_REFUSED
-                && webViewError != WebViewError.CONNECTION_DISCONNECTED
-            ) {
-                DownloadIcon(
-                    contentHtml,
-                    crawlResult,
-                    downloadContentResource = { onDownloadResourceClick(linkId, url) },
-                    onDelete = { onContentHtmlDeleteClick() },
-                    Modifier.padding(end = 8.dp)
+            if (isBackArrowVisible) {
+                Image(
+                    painterResource(R.drawable.arrow_left),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { popNavigation() }
                 )
             }
-            Icon(
-                painterResource(R.drawable.edit),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable { setIsOpenDialog(true) },
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                modifier = Modifier.padding(bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val isWebUrl = Patterns.WEB_URL.matcher(url).matches()
+
+                if (isWebUrl &&
+                    webViewError != WebViewError.CONNECTION_REFUSED
+                    && webViewError != WebViewError.CONNECTION_DISCONNECTED
+                ) {
+                    DownloadIcon(
+                        contentHtml,
+                        crawlResult,
+                        downloadContentResource = { onDownloadResourceClick(linkId, url) },
+                        onDelete = { onContentHtmlDeleteClick() },
+                        Modifier.padding(end = 8.dp)
+                    )
+                }
+                Icon(
+                    painterResource(R.drawable.edit),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { setIsOpenDialog(true) },
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
-    }
 }
 
 @Preview

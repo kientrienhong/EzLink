@@ -41,8 +41,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.timeskip.ezlink.R
+import com.timeskip.ezlink.ShareInfoModel
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.ImageStorageHelper
+import com.timeskip.ezlink.features.common.views.GrayLogoWithTextView
 import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.tag.data.Tag
@@ -54,8 +56,7 @@ internal fun TagScreen(
     modifier: Modifier,
     onTagClick: (String) -> Unit,
     onSearchClick: (String) -> Unit,
-    sharedUrl: String?,
-    sharedTagName: String?,
+    shareInfoModel: ShareInfoModel?,
     onConsumeSharedIntent: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -66,7 +67,7 @@ internal fun TagScreen(
     val stateTagCreating by viewModel.createTagLiveData.observeAsState()
     val stateLinkCreating by viewModel.createLinkLiveData.observeAsState()
     val stateDeleteTagResult by viewModel.deleteTagLiveData.observeAsState()
-    val url by viewModel.urlLiveData.observeAsState(sharedUrl)
+    val url by viewModel.urlLiveData.observeAsState(shareInfoModel?.sharedUrl)
 
     var showTagAddBottomSheet by remember { mutableStateOf(false) }
     var showLinkAddBottomSheet by remember { mutableStateOf(false) }
@@ -74,11 +75,12 @@ internal fun TagScreen(
     var currentSelectedTag by remember { mutableStateOf<Tag?>(null) }
     var urlTextInputEnabled by remember { mutableStateOf(true) }
 
-    LaunchedEffect(sharedTagName, sharedUrl) {
+    LaunchedEffect(shareInfoModel) {
+        val sharedTagName = shareInfoModel?.sharedTagName
+        val sharedUrl = shareInfoModel?.sharedUrl
         if (sharedTagName != null && sharedUrl != null) {
             viewModel.createLink(sharedUrl, sharedTagName)
             urlTextInputEnabled = false
-            // We'll consume after the createLink result succeeds.
         } else if (sharedUrl != null) {
             if (ImageStorageHelper.isImageUrl(sharedUrl)) {
                 showShareImageBottomSheet = true
@@ -160,7 +162,7 @@ internal fun TagScreen(
         }
         if (showShareImageBottomSheet) {
             ShareImageBottomSheet(
-                imageUrl = sharedUrl.orEmpty(),
+                imageUrl = shareInfoModel?.sharedUrl.orEmpty(),
                 listTagName = stateFlowTagList.map { it.tag.name },
                 result = stateLinkCreating,
                 tagName = "",
@@ -282,7 +284,9 @@ private fun ListTagItemWithHeader(
                 // Header: EzLink title
                 item {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -306,8 +310,7 @@ private fun ListTagItemWithHeader(
                 // Header: Search field
                 item {
                     MyTextField(
-                        value = "",
-                        placeholder = "Search links...",
+                        value = "Search links...",
                         onChange = {},
                         leadingIcon = {
                             Icon(
@@ -319,8 +322,8 @@ private fun ListTagItemWithHeader(
                         },
                         enabled = false,
                         modifier = Modifier
-                            .fillMaxWidth()
                             .padding(top = 16.dp, bottom = 8.dp)
+                            .fillMaxWidth()
                             .clickable { onSearchClick("") }
                     )
                 }
@@ -335,7 +338,7 @@ private fun ListTagItemWithHeader(
                 // Tag list items
                 if (stateFlowTagList.isEmpty()) {
                     item {
-                        com.timeskip.ezlink.features.common.views.GrayLogoWithTextView(
+                        GrayLogoWithTextView(
                             modifier = Modifier.fillMaxSize(),
                             textContent = "No tags found. Click the '+' button to create a new tag."
                         )
@@ -352,7 +355,7 @@ private fun ListTagItemWithHeader(
         }
 
         is ApiResult.Error -> {
-            com.timeskip.ezlink.features.common.views.GrayLogoWithTextView(
+            GrayLogoWithTextView(
                 modifier = Modifier.fillMaxSize(),
                 textContent = "There is unexpected error occurred. Please kill and re-open app again."
             )

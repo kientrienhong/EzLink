@@ -191,7 +191,7 @@ private fun LinkScreenHeader(
     Row(
         modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
+            .padding(top = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

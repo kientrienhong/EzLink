@@ -8,22 +8,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor() : ViewModel() {
-    private val sharedUrlMutableLiveData: MutableLiveData<String?> = MutableLiveData(null)
-    val sharedUrlLiveData: LiveData<String?> = sharedUrlMutableLiveData
+    private val sharedInfoMutableLiveData: MutableLiveData<ShareInfoModel?> = MutableLiveData(null)
+    val sharedInfoLiveData: LiveData<ShareInfoModel?> = sharedInfoMutableLiveData
 
-    private val sharedTagNameMutableLiveData: MutableLiveData<String?> = MutableLiveData(null)
-    val sharedTagNameLiveData: LiveData<String?> = sharedTagNameMutableLiveData
-
-    fun setSharedUrl(url: String?) {
-        sharedUrlMutableLiveData.value = url
-    }
-
-    fun setSharedTagName(tagName: String?) {
-        sharedTagNameMutableLiveData.value = tagName
+    fun setSharedUrl(shareInfoModel: ShareInfoModel?) {
+        sharedInfoMutableLiveData.value = shareInfoModel
     }
 
     fun reset() {
-        sharedUrlMutableLiveData.value = null
-        sharedTagNameMutableLiveData.value = null
+        sharedInfoMutableLiveData.value = null
     }
 }

@@ -8,17 +8,15 @@ import com.timeskip.ezlink.navigation.AppNavHost
 
 @Composable
 fun MainContainer(
+    shareInfoModel: ShareInfoModel?,
     modifier: Modifier = Modifier,
-    sharedUrl: String? = null,
-    sharedTagName: String? = null,
     onConsumeSharedIntent: () -> Unit = {},
 ) {
     val navController = rememberNavController()
     AppNavHost(
         navController = navController,
+        shareInfoModel,
         modifier = modifier,
-        sharedUrl = sharedUrl,
-        sharedTagName = sharedTagName,
         onConsumeSharedIntent = onConsumeSharedIntent,
     )
 }
@@ -26,5 +24,5 @@ fun MainContainer(
 @Preview
 @Composable
 fun MainContainerPreview() {
-    MainContainer(Modifier)
+    MainContainer(shareInfoModel = null, Modifier)
 }

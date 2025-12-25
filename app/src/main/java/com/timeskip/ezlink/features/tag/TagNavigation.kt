@@ -7,6 +7,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.timeskip.ezlink.ShareInfoModel
 import com.timeskip.ezlink.features.link.navigateToLink
 import com.timeskip.ezlink.features.link.navigateToSearchLink
 import com.timeskip.ezlink.features.tag.view.TagScreen
@@ -16,8 +17,7 @@ import com.timeskip.ezlink.navigation.TagNavigation
 fun NavGraphBuilder.tagGraph(
     navController: NavController,
     modifier: Modifier,
-    sharedUrl: String?,
-    sharedTagName: String?,
+    shareInfoModel: ShareInfoModel?,
     onConsumeSharedIntent: () -> Unit,
 ) {
     navigation<TagNavigation>(TagListDestination) {
@@ -33,8 +33,7 @@ fun NavGraphBuilder.tagGraph(
                     )
                 },
                 onSearchClick = { navController.navigateToSearchLink(it) },
-                sharedUrl = sharedUrl,
-                sharedTagName = sharedTagName,
+                shareInfoModel = shareInfoModel,
                 onConsumeSharedIntent = onConsumeSharedIntent,
             )
         }

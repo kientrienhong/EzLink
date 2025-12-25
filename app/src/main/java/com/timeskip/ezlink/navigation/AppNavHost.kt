@@ -1,12 +1,12 @@
 package com.timeskip.ezlink.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
+import com.timeskip.ezlink.ShareInfoModel
 import com.timeskip.ezlink.features.link.linkGraph
 import com.timeskip.ezlink.features.link.linkSearchGraph
 import com.timeskip.ezlink.features.link.navigateToLink
@@ -16,12 +16,13 @@ import com.timeskip.ezlink.features.tag.tagGraph
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    shareInfoModel: ShareInfoModel?,
     modifier: Modifier,
-    sharedUrl: String?,
-    sharedTagName: String?,
     onConsumeSharedIntent: () -> Unit,
 ) {
-    LaunchedEffect(sharedTagName, sharedUrl) {
+    LaunchedEffect(shareInfoModel) {
+        val sharedUrl = shareInfoModel?.sharedUrl
+        val sharedTagName = shareInfoModel?.sharedTagName
         if (sharedTagName != null && sharedUrl == null) {
             navController.navigateToLink(
                 sharedTagName,
@@ -40,8 +41,7 @@ fun AppNavHost(
         tagGraph(
             navController = navController,
             modifier = modifier,
-            sharedUrl = sharedUrl,
-            sharedTagName = sharedTagName,
+            shareInfoModel = shareInfoModel,
             onConsumeSharedIntent = onConsumeSharedIntent,
         )
         linkGraph(navController, modifier)

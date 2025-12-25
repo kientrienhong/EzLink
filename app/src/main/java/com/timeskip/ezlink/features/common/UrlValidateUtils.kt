@@ -143,6 +143,6 @@ object UrlValidateUtils {
 
     private fun isValidUrl(url: String): Boolean = Patterns.WEB_URL.matcher(url).matches()
 
-    private fun getIconUrl(domain: String): String = "https://logo.clearbit.com/$domain"
+    private fun getIconUrl(domain: String): String = "https://s2.googleusercontent.com/s2/favicons?domain=$domain"
 
 }

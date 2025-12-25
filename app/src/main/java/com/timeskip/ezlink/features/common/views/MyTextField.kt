@@ -15,6 +15,7 @@ fun MyTextField(
     onChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "",
+    label: String? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     shape: Shape = MaterialTheme.shapes.medium,
@@ -26,8 +27,15 @@ fun MyTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
+        label = {
+            if (label != null) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                )
+            }
+        },
         placeholder = {
             Text(
                 text = placeholder,
