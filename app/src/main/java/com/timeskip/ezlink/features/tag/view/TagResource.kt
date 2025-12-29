@@ -9,7 +9,7 @@ enum class TagResource(
     @ColorInt val color: Long,
     @DrawableRes val iconRes: Int
 ) {
-    FAVORITE("Favorite", 0xFFC26CE6, R.drawable.heart),
+    FAVORITE("Favorites", 0xFFC26CE6, R.drawable.heart),
     READ_LATER("Read later", 0xFFDC9F4C, R.drawable.book),
     PERSONAL("Personal", 0xFF628CCE, R.drawable.profile),
     USER_TAG("", 0xFFFE815A, R.drawable.tag);

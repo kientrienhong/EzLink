@@ -1,6 +1,7 @@
 package com.timeskip.ezlink.features.link.list
 
 import android.content.Context
+import android.database.sqlite.SQLiteConstraintException
 import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -122,26 +123,33 @@ class LinkScreenViewModel @Inject constructor(
                 return@launch
             }
 
+            val result = try {
+                when (validationResult) {
+                    is ApiResult.Success -> {
+                        val link = if (isWebUrl) {
+                            val domain = LinkUrlHelper.getDomain(url)
+                            validationResult.data.copy(iconUrl = getIconUrl(domain))
+                        } else {
+                            validationResult.data
+                        }
+                        val resultInsert = repository.insertLink(link)
+                        if (resultInsert) {
+                            ApiResult.Success(link)
+                        } else {
+                            ApiResult.Error(Exception("Failed to insert link"))
+                        }
+                    }
 
-            val result = when (validationResult) {
-                is ApiResult.Success -> {
-                    val link = if (isWebUrl) {
-                        val domain = LinkUrlHelper.getDomain(url)
-                        validationResult.data.copy(iconUrl = getIconUrl(domain))
-                    } else {
-                        validationResult.data
-                    }
-                    val resultInsert = repository.insertLink(link)
-                    if (resultInsert) {
-                        ApiResult.Success(link)
-                    } else {
-                        ApiResult.Error(Exception("Failed to insert link"))
-                    }
+                    is ApiResult.Error -> ApiResult.Error(validationResult.exception)
+                    is ApiResult.Loading -> ApiResult.Loading()
                 }
-
-                is ApiResult.Error -> ApiResult.Error(validationResult.exception)
-                is ApiResult.Loading -> ApiResult.Loading()
+            }  catch (e: SQLiteConstraintException) {
+            if (e.message?.contains("FOREIGN KEY constraint failed") == true) {
+                ApiResult.Error(IllegalArgumentException("Tag name is invalid"))
+            } else {
+                ApiResult.Error(IllegalArgumentException("Failed to create link! Please try again."))
             }
+        }
 
             createLinkMutableLiveData.postValue(result)
         }

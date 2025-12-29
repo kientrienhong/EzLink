@@ -119,7 +119,7 @@ internal fun TagScreen(
                 Toast.makeText(
                     context,
                     "Link added successfully",
-                    Toast.LENGTH_LONG
+                    Toast.LENGTH_SHORT
                 ).show()
                 onConsumeSharedIntent()
                 viewModel.resetCreateLinkLiveData()

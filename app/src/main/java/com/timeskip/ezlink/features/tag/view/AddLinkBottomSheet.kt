@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.features.tag.view
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.views.MyInputDropdown
@@ -42,6 +44,7 @@ fun <T> AddLinkBottomSheet(
     dropDownEnabled: Boolean = true,
     urlInputEnabled: Boolean = true
 ) {
+    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -52,7 +55,12 @@ fun <T> AddLinkBottomSheet(
                 onDismissRequest()
             }
 
-            is ApiResult.Error,
+            is ApiResult.Error -> Toast.makeText(
+                context,
+                result.exception.message,
+                Toast.LENGTH_LONG
+            ).show()
+
             is ApiResult.Loading,
             null -> Unit
         }

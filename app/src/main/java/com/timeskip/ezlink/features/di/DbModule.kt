@@ -37,7 +37,7 @@ object DbModule {
                 db.execSQL(
                     """
                         INSERT INTO tag (name, amountOfLink, isRead, isDefaultCreated, updateAt) 
-                        VALUES ('Favorite', 0, 1, 1, $currentTime)
+                        VALUES ('Favorites', 0, 1, 1, $currentTime)
                     """
                 )
                 db.execSQL(
