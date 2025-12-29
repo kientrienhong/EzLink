@@ -42,7 +42,9 @@ fun <T> AddLinkBottomSheet(
     dropDownEnabled: Boolean = true,
     urlInputEnabled: Boolean = true
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     LaunchedEffect(result) {
         when (result) {
             is ApiResult.Success -> {
