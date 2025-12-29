@@ -76,7 +76,7 @@ internal fun LinkScreenContent(
     }
 
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         LinkScreenHeader(
             tagName = tagName,
             popBackStack = popBackStack
@@ -102,7 +102,10 @@ internal fun LinkScreenContent(
         LazyVerticalStaggeredGrid(
             state = gridState,
             columns = StaggeredGridCells.Fixed(count = 2),
-            contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding()),
+            contentPadding = PaddingValues(
+                bottom = paddingValues.calculateBottomPadding(),
+                top = 16.dp
+            ),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalItemSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()
@@ -151,8 +154,6 @@ internal fun LinkScreenContent(
                 }
             }
         }
-
-
     }
 }
 

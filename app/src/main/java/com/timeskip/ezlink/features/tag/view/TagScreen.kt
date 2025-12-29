@@ -196,23 +196,27 @@ internal fun TagScreen(
                 urlInputEnabled = urlTextInputEnabled
             )
         }
-        MultiFloatingActionButton(
-            listOf(
-                FabViewItem(
-                    label = "Add Tag",
-                    iconRes = R.drawable.tag,
-                    onClick = { showTagAddBottomSheet = true }
+        Box(
+            modifier = modifier.fillMaxSize()
+        ) {
+            MultiFloatingActionButton(
+                listOf(
+                    FabViewItem(
+                        label = "Add Tag",
+                        iconRes = R.drawable.tag,
+                        onClick = { showTagAddBottomSheet = true }
+                    ),
+                    FabViewItem(
+                        label = "Add Link",
+                        iconRes = R.drawable.link,
+                        onClick = { showLinkAddBottomSheet = true }
+                    ),
                 ),
-                FabViewItem(
-                    label = "Add Link",
-                    iconRes = R.drawable.link,
-                    onClick = { showLinkAddBottomSheet = true }
-                ),
-            ),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        )
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 32.dp, end = 24.dp)
+            )
+        }
     }
 }
 
@@ -288,9 +292,7 @@ private fun LazyListScope.listTagItemWithHeader(
             // Header: EzLink title
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

@@ -140,22 +140,26 @@ internal fun LinkScreen(
                 }
             )
         }
-        FloatingActionButton(
-            onClick = { showBottomSheet = true },
-            shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 16.dp)
+        Box(
+            modifier = modifier.fillMaxSize().padding(paddingValues)
         ) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = "",
+            FloatingActionButton(
+                onClick = { showBottomSheet = true },
+                shape = CircleShape,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
-                    .size(24.dp),
-                tint = Color.White
-            )
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 32.dp, end = 24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(24.dp),
+                    tint = Color.White
+                )
+            }
         }
     }
 }

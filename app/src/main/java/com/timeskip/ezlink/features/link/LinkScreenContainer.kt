@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -43,7 +44,7 @@ fun LinkScreenContainer(
     NavigableListDetailPaneScaffold(
         navigator = scaffoldNavigator,
         listPane = {
-            AnimatedPane {
+            AnimatedPane(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
                 LinkScreen(
                     navigateToLinkEditor = { link, isEdit ->
                         scope.launch {
@@ -72,7 +73,7 @@ fun LinkScreenContainer(
                 return@NavigableListDetailPaneScaffold
             }
 
-            AnimatedPane {
+            AnimatedPane(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
                 val selectedItem =
                     scaffoldNavigator.currentDestination?.contentKey ?: return@AnimatedPane
                 val link = selectedItem.link
