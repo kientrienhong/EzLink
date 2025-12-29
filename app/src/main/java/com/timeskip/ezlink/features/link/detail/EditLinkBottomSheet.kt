@@ -100,19 +100,21 @@ private fun EditLinkBottomSheetContent(
 
     Column(modifier = modifier.padding(vertical = 16.dp, horizontal = 16.dp)) {
         Text("Add link")
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(labelOfUrl, style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(4.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
-            label = labelOfUrl,
             value = url,
             onChange = { url = it },
             enabled = false,
             shape = MaterialTheme.shapes.small
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Title", style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(4.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
-            label = "Title",
             value = title,
             onChange = { title = it },
             enabled = true,
@@ -120,10 +122,11 @@ private fun EditLinkBottomSheetContent(
             maxLines = 6,
             shape = MaterialTheme.shapes.small
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Description", style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(4.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
-            label = "Description",
             value = description,
             onChange = { description = it },
             enabled = true,
@@ -131,7 +134,9 @@ private fun EditLinkBottomSheetContent(
             maxLines = 6,
             shape = MaterialTheme.shapes.small
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Category", style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(4.dp))
         MyInputDropdown(
             options = listTagName,
             value = tagName,

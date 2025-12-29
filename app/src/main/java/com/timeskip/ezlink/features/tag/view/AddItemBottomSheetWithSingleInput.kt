@@ -91,11 +91,12 @@ private fun <T> AddBottomSheetContent(
     var name by remember { mutableStateOf("") }
     Column(modifier = modifier.padding(vertical = 16.dp, horizontal = 16.dp)) {
         Text(title)
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Url", style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(4.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
             value = name,
-            label = "Url",
             onChange = { name = it },
             shape = MaterialTheme.shapes.small
         )

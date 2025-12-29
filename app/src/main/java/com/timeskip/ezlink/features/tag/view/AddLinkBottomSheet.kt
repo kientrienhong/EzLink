@@ -94,16 +94,19 @@ private fun <T> AddLinkBottomSheetContent(
 
     Column(modifier = modifier.padding(vertical = 16.dp, horizontal = 16.dp)) {
         Text("Add link")
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Url", style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(4.dp))
         MyTextField(
             modifier = Modifier.fillMaxWidth(),
             value = url,
-            label = "Url",
             onChange = { url = it },
             enabled = urlInputEnabled,
             shape = MaterialTheme.shapes.small
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Category", style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(4.dp))
         MyInputDropdown(
             options = listTagName,
             value = tagName,

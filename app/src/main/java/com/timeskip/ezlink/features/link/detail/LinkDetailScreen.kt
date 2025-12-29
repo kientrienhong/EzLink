@@ -82,7 +82,7 @@ fun LinkDetailScreen(
     var isOpenDialog by remember { mutableStateOf(false) }
     val listTagName by viewModel.listTagName.observeAsState(emptyList())
     val link by viewModel.linkLiveData.observeAsState(link)
-    val bottomPaddingValue = if(ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+    val bottomPaddingValue = if (ImageStorageHelper.isLocalStoredImage(context, link.url)) {
         16.dp
     } else {
         100.dp
@@ -270,50 +270,48 @@ private fun LinkEditorScreenHeader(
             Arrangement.End
         }
     }
-    val isWebUrl =
-
-        Row(
-            modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = horizontalArrangement
-        ) {
-            if (isBackArrowVisible) {
-                Image(
-                    painterResource(R.drawable.arrow_left),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable { popNavigation() }
-                )
-            }
-            Row(
-                modifier = Modifier.padding(bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val isWebUrl = Patterns.WEB_URL.matcher(url).matches()
-
-                if (isWebUrl &&
-                    webViewError != WebViewError.CONNECTION_REFUSED
-                    && webViewError != WebViewError.CONNECTION_DISCONNECTED
-                ) {
-                    DownloadIcon(
-                        contentHtml,
-                        crawlResult,
-                        downloadContentResource = { onDownloadResourceClick(linkId, url) },
-                        onDelete = { onContentHtmlDeleteClick() },
-                        Modifier.padding(end = 8.dp)
-                    )
-                }
-                Icon(
-                    painterResource(R.drawable.edit),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable { setIsOpenDialog(true) },
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+    Row(
+        modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = horizontalArrangement
+    ) {
+        if (isBackArrowVisible) {
+            Image(
+                painterResource(R.drawable.arrow_left),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { popNavigation() }
+            )
         }
+        Row(
+            modifier = Modifier.padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val isWebUrl = Patterns.WEB_URL.matcher(url).matches()
+
+            if (isWebUrl &&
+                webViewError != WebViewError.CONNECTION_REFUSED
+                && webViewError != WebViewError.CONNECTION_DISCONNECTED
+            ) {
+                DownloadIcon(
+                    contentHtml,
+                    crawlResult,
+                    downloadContentResource = { onDownloadResourceClick(linkId, url) },
+                    onDelete = { onContentHtmlDeleteClick() },
+                    Modifier.padding(end = 8.dp)
+                )
+            }
+            Icon(
+                painterResource(R.drawable.edit),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { setIsOpenDialog(true) },
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
 }
 
 @Preview
