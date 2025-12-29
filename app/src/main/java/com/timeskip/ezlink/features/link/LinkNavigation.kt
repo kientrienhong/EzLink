@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.features.link
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -13,9 +14,13 @@ fun NavController.navigateToLink(tagName: String, navOptions: NavOptions? = null
     this.navigate(LinkDestination(tagName), navOptions = navOptions)
 }
 
-fun NavGraphBuilder.linkGraph(navController: NavController, modifier: Modifier) {
+fun NavGraphBuilder.linkGraph(
+    navController: NavController,
+    modifier: Modifier,
+    paddingValues: PaddingValues
+) {
     composable<LinkDestination> {
-        LinkScreenContainer(navController::popBackStack, modifier)
+        LinkScreenContainer(navController::popBackStack, modifier, paddingValues)
     }
 }
 
@@ -23,9 +28,13 @@ fun NavController.navigateToSearchLink(search: String, navOptions: NavOptions? =
     this.navigate(LinkSearchNavigation(search), navOptions = navOptions)
 }
 
-fun NavGraphBuilder.linkSearchGraph(navController: NavController, modifier: Modifier) {
+fun NavGraphBuilder.linkSearchGraph(
+    navController: NavController,
+    modifier: Modifier,
+    paddingValues: PaddingValues
+) {
     composable<LinkSearchNavigation> { navBackStackEntry ->
         val searchValue = navBackStackEntry.arguments?.getString("search") ?: ""
-        LinkSearchContainer(searchValue, navController::popBackStack, modifier)
+        LinkSearchContainer(searchValue, navController::popBackStack, paddingValues, modifier)
     }
 }

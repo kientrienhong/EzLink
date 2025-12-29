@@ -3,6 +3,7 @@ package com.timeskip.ezlink.features.link.search
 import android.os.Parcelable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
@@ -28,7 +29,7 @@ private data class LinkEditorScreenArgs(val link: Link, val isEdit: Boolean) : P
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun LinkSearchContainer(search: String, popBack: () -> Unit, modifier: Modifier = Modifier) {
+fun LinkSearchContainer(search: String, popBack: () -> Unit, paddingValues: PaddingValues, modifier: Modifier = Modifier) {
     val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<LinkEditorScreenArgs>(
         isDestinationHistoryAware = true
     )
@@ -37,7 +38,7 @@ fun LinkSearchContainer(search: String, popBack: () -> Unit, modifier: Modifier 
     NavigableListDetailPaneScaffold(
         navigator = scaffoldNavigator,
         listPane = {
-            AnimatedPane(modifier = modifier) {
+            AnimatedPane {
                 LinkSearchScreen(
                     search = search,
                     onBack = popBack,
@@ -49,6 +50,7 @@ fun LinkSearchContainer(search: String, popBack: () -> Unit, modifier: Modifier 
                             )
                         }
                     },
+                    paddingValues = paddingValues
                 )
             }
         },
@@ -66,7 +68,7 @@ fun LinkSearchContainer(search: String, popBack: () -> Unit, modifier: Modifier 
                 return@NavigableListDetailPaneScaffold
             }
 
-            AnimatedPane(modifier = modifier) {
+            AnimatedPane {
                 val selectedItem =
                     scaffoldNavigator.currentDestination?.contentKey ?: return@AnimatedPane
                 val link = selectedItem.link

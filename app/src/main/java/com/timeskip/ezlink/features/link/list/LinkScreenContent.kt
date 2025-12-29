@@ -52,6 +52,7 @@ internal fun LinkScreenContent(
     onLongClickItem: (Link) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
+    paddingValues: PaddingValues = PaddingValues(0.dp),
     isLoadingMore: Boolean = false
 ) {
     val items = listLink.orEmpty()
@@ -75,7 +76,7 @@ internal fun LinkScreenContent(
     }
 
 
-    Column(modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize()) {
         LinkScreenHeader(
             tagName = tagName,
             popBackStack = popBackStack
@@ -101,7 +102,7 @@ internal fun LinkScreenContent(
         LazyVerticalStaggeredGrid(
             state = gridState,
             columns = StaggeredGridCells.Fixed(count = 2),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding()),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalItemSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()

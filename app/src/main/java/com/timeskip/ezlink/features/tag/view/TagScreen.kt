@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -53,11 +54,12 @@ import com.timeskip.ezlink.features.tag.fab.MultiFloatingActionButton
 
 @Composable
 internal fun TagScreen(
-    modifier: Modifier,
     onTagClick: (String) -> Unit,
     onSearchClick: (String) -> Unit,
     shareInfoModel: ShareInfoModel?,
     onConsumeSharedIntent: () -> Unit,
+    modifier: Modifier = Modifier,
+    paddingValues: PaddingValues = PaddingValues(0.dp)
 ) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<TagViewModel>()
@@ -136,7 +138,7 @@ internal fun TagScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         TagScreenMainContent(
             stateFlowTagList,
             stateFlowInitialLoad,
@@ -145,7 +147,8 @@ internal fun TagScreen(
             onTagClick = onTagClick,
             onDeleteTag = viewModel::deleteTag,
             onSearchClick = onSearchClick,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = paddingValues
         )
         if (showTagAddBottomSheet) {
             AddItemBottomSheetWithSingleInput(
@@ -229,18 +232,26 @@ private fun TagScreenMainContent(
     onDeleteTag: (Tag) -> Unit,
     onSearchClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    // Render header items in a separate composable that wraps ListTagItem
-    ListTagItemWithHeader(
-        stateFlowTagList,
-        stateFlowInitialLoad,
-        onTagClick,
-        currentSelectedTagChanged,
-        onSearchClick,
-        modifier
-            .padding(horizontal = 16.dp)
+    LazyColumn(
+        modifier = modifier
             .background(MaterialTheme.colorScheme.background)
-    )
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = contentPadding
+    ) {
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        listTagItemWithHeader(
+            stateFlowTagList = stateFlowTagList,
+            stateFlowInitialLoad = stateFlowInitialLoad,
+            onTagClick = onTagClick,
+            onLongClick = currentSelectedTagChanged,
+            onSearchClick = onSearchClick
+        )
+    }
 
     if (currentSelectedTag != null) {
         AlertDialog(
@@ -261,104 +272,98 @@ private fun TagScreenMainContent(
     }
 }
 
-@Composable
-private fun ListTagItemWithHeader(
+private fun LazyListScope.listTagItemWithHeader(
     stateFlowTagList: List<TagViewItem>,
     stateFlowInitialLoad: ApiResult<Unit>,
     onTagClick: (String) -> Unit,
     onLongClick: (Tag) -> Unit,
     onSearchClick: (String) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     when (stateFlowInitialLoad) {
         is ApiResult.Loading -> {
-            Text("Loading")
+            item { Text("Loading") }
         }
 
         is ApiResult.Success -> {
-            LazyColumn(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                // Header: EzLink title
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "EzLink", style = MaterialTheme.typography.headlineSmall)
-                    }
+            // Header: EzLink title
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "EzLink", style = MaterialTheme.typography.headlineSmall)
                 }
+            }
 
-                // Header: Hero image
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Image(
-                        painterResource(R.drawable.link_home_illustration),
-                        contentDescription = null,
-                        contentScale = ContentScale.FillHeight,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(16f / 9f)
-                    )
-                }
+            // Header: Hero image
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Image(
+                    painterResource(R.drawable.link_home_illustration),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                )
+            }
 
-                // Header: Search field
-                item {
-                    MyTextField(
-                        value = "Search links...",
-                        onChange = {},
-                        leadingIcon = {
-                            Icon(
-                                painterResource(R.drawable.search),
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        enabled = false,
-                        modifier = Modifier
-                            .padding(top = 16.dp, bottom = 8.dp)
-                            .fillMaxWidth()
-                            .clickable { onSearchClick("") }
-                    )
-                }
-
-                // Header: "Your Tags" label
-                item {
-                    Spacer(Modifier.height(16.dp))
-                    Text(text = "Your Tags", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(8.dp))
-                }
-
-                // Tag list items
-                if (stateFlowTagList.isEmpty()) {
-                    item {
-                        GrayLogoWithTextView(
-                            modifier = Modifier.fillMaxSize(),
-                            textContent = "No tags found. Click the '+' button to create a new tag."
+            // Header: Search field
+            item {
+                MyTextField(
+                    value = "Search links...",
+                    onChange = {},
+                    leadingIcon = {
+                        Icon(
+                            painterResource(R.drawable.search),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
+                    },
+                    enabled = false,
+                    modifier = Modifier
+                        .padding(top = 16.dp, bottom = 8.dp)
+                        .fillMaxWidth()
+                        .clickable { onSearchClick("") }
+                )
+            }
+
+            // Header: "Your Tags" label
+            item {
+                Spacer(Modifier.height(16.dp))
+                Text(text = "Your Tags", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+            }
+
+            // Tag list items
+            if (stateFlowTagList.isEmpty()) {
+                item {
+                    GrayLogoWithTextView(
+                        modifier = Modifier.fillMaxSize(),
+                        textContent = "No tags found. Click the '+' button to create a new tag."
+                    )
                 }
-                items(
-                    count = stateFlowTagList.size,
-                    key = { index -> stateFlowTagList[index].tag.name }
-                ) { index ->
-                    val tagViewItem = stateFlowTagList[index]
-                    TagItem(tagViewItem, onTagClick, onLongClick)
-                }
+            }
+            items(
+                count = stateFlowTagList.size,
+                key = { index -> stateFlowTagList[index].tag.name }
+            ) { index ->
+                val tagViewItem = stateFlowTagList[index]
+                TagItem(tagViewItem, onTagClick, onLongClick)
             }
         }
 
         is ApiResult.Error -> {
-            GrayLogoWithTextView(
-                modifier = Modifier.fillMaxSize(),
-                textContent = "There is unexpected error occurred. Please kill and re-open app again."
-            )
+            item {
+                GrayLogoWithTextView(
+                    modifier = Modifier.fillMaxSize(),
+                    textContent = "There is unexpected error occurred. Please kill and re-open app again."
+                )
+            }
         }
     }
 }

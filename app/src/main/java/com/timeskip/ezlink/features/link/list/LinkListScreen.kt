@@ -3,6 +3,7 @@ package com.timeskip.ezlink.features.link.list
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,7 +38,8 @@ import com.timeskip.ezlink.features.tag.view.AddLinkBottomSheet
 internal fun LinkScreen(
     modifier: Modifier = Modifier,
     navigateToLinkEditor: (Link, Boolean) -> Unit,
-    popBackStack: () -> Unit
+    popBackStack: () -> Unit,
+    paddingValues: PaddingValues = PaddingValues(0.dp)
 ) {
     val context: Context = LocalContext.current
     val viewModel = hiltViewModel<LinkScreenViewModel>()
@@ -87,7 +89,7 @@ internal fun LinkScreen(
             null -> Unit
         }
     }
-    Box(modifier.padding(horizontal = 16.dp)) {
+    Box(modifier.fillMaxSize()) {
         LinkScreenContent(
             viewModel.tagName,
             listLink,
@@ -102,7 +104,8 @@ internal fun LinkScreen(
                 }
             },
             modifier = Modifier.fillMaxSize(),
-            isLoadingMore = isLoadingMore
+            isLoadingMore = isLoadingMore,
+            paddingValues = paddingValues
         )
         if (showBottomSheet) {
             AddLinkBottomSheet(

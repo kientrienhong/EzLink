@@ -47,6 +47,7 @@ internal fun LinkSearchScreen(
     search: String,
     onBack: () -> Unit,
     onItemClick: (Link, Boolean) -> Unit,
+    paddingValues: PaddingValues,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -114,7 +115,7 @@ internal fun LinkSearchScreen(
         Spacer(modifier = Modifier.height(24.dp))
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(count = 2),
-            contentPadding = PaddingValues(vertical = 8.dp),
+            contentPadding = paddingValues,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalItemSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()

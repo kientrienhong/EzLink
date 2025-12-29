@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.navigation
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -18,6 +19,7 @@ fun AppNavHost(
     navController: NavHostController,
     shareInfoModel: ShareInfoModel?,
     modifier: Modifier,
+    paddingValues: PaddingValues,
     onConsumeSharedIntent: () -> Unit,
 ) {
     LaunchedEffect(shareInfoModel) {
@@ -43,8 +45,9 @@ fun AppNavHost(
             modifier = modifier,
             shareInfoModel = shareInfoModel,
             onConsumeSharedIntent = onConsumeSharedIntent,
+            paddingValues = paddingValues
         )
-        linkGraph(navController, modifier)
-        linkSearchGraph(navController, modifier)
+        linkGraph(navController, modifier, paddingValues)
+        linkSearchGraph(navController, modifier, paddingValues)
     }
 }

@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.features.tag
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -18,12 +19,12 @@ fun NavGraphBuilder.tagGraph(
     navController: NavController,
     modifier: Modifier,
     shareInfoModel: ShareInfoModel?,
+    paddingValues: PaddingValues,
     onConsumeSharedIntent: () -> Unit,
 ) {
     navigation<TagNavigation>(TagListDestination) {
         composable<TagListDestination> {
             TagScreen(
-                modifier = modifier,
                 onTagClick = { name ->
                     navController.navigateToLink(
                         name,
@@ -35,6 +36,8 @@ fun NavGraphBuilder.tagGraph(
                 onSearchClick = { navController.navigateToSearchLink(it) },
                 shareInfoModel = shareInfoModel,
                 onConsumeSharedIntent = onConsumeSharedIntent,
+                modifier = modifier,
+                paddingValues = paddingValues,
             )
         }
     }

@@ -36,6 +36,7 @@ class MainActivity : ComponentActivity() {
                     MainContainer(
                         shareInfoModel = shareInfo,
                         modifier = Modifier.padding(innerPadding),
+                        paddingValues = innerPadding,
                         onConsumeSharedIntent = viewModel::reset
                     )
                 }
