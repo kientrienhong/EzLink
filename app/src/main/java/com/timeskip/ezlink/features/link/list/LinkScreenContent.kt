@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,7 +58,7 @@ internal fun LinkScreenContent(
 ) {
     val items = listLink.orEmpty()
     val gridState = rememberLazyStaggeredGridState()
-
+    val localLayoutDirection = LocalLayoutDirection.current
     LaunchedEffect(gridState) {
         snapshotFlow { gridState.layoutInfo }
             .map { layoutInfo ->
@@ -76,7 +77,14 @@ internal fun LinkScreenContent(
     }
 
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(
+                start = paddingValues.calculateLeftPadding(localLayoutDirection) + 16.dp,
+                end = paddingValues.calculateRightPadding(localLayoutDirection) + 16.dp,
+            )
+    ) {
         LinkScreenHeader(
             tagName = tagName,
             popBackStack = popBackStack
@@ -103,12 +111,12 @@ internal fun LinkScreenContent(
             state = gridState,
             columns = StaggeredGridCells.Fixed(count = 2),
             contentPadding = PaddingValues(
-                bottom = paddingValues.calculateBottomPadding(),
+                bottom = paddingValues.calculateBottomPadding() + 16.dp,
                 top = 16.dp
             ),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalItemSpacing = 16.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxSize()
         ) {
             if (items.isEmpty() && !isLoadingMore) {
                 item(span = StaggeredGridItemSpan.FullLine) {

@@ -87,7 +87,8 @@ fun LinkScreenContainer(
                         } else {
                             popBack()
                         }
-                    }
+                    },
+                    paddingValues
                 )
             }
         },

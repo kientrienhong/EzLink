@@ -83,7 +83,8 @@ fun LinkSearchContainer(search: String, popBack: () -> Unit, paddingValues: Padd
                         } else {
                             popBack()
                         }
-                    }
+                    },
+                    paddingValues
                 )
             }
         },

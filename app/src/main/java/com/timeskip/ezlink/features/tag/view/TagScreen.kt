@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -238,12 +239,18 @@ private fun TagScreenMainContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
+    val localLayoutDirection = LocalLayoutDirection.current
     LazyColumn(
         modifier = modifier
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = contentPadding
+        contentPadding = PaddingValues(
+            start = contentPadding.calculateLeftPadding(localLayoutDirection),
+            end = contentPadding.calculateRightPadding(localLayoutDirection),
+            top = contentPadding.calculateTopPadding(),
+            bottom = contentPadding.calculateBottomPadding() + 16.dp
+        )
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))

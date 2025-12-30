@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,6 +49,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,6 +71,7 @@ import com.timeskip.ezlink.features.link.data.Link
 fun LinkDetailScreen(
     link: Link,
     popNavigation: () -> Unit,
+    paddingValues: PaddingValues,
     modifier: Modifier = Modifier
 ) {
     val viewModel = hiltViewModel<LinkDetailViewModel>()
@@ -83,10 +87,11 @@ fun LinkDetailScreen(
     val listTagName by viewModel.listTagName.observeAsState(emptyList())
     val link by viewModel.linkLiveData.observeAsState(link)
     val bottomPaddingValue = if (ImageStorageHelper.isLocalStoredImage(context, link.url)) {
-        16.dp
+        paddingValues.calculateBottomPadding()
     } else {
-        100.dp
+        paddingValues.calculateBottomPadding() + 56.dp + 24.dp
     }
+    val layoutDirection = LocalLayoutDirection.current
 
     DisposableEffect(Unit) {
         onDispose {
@@ -115,6 +120,7 @@ fun LinkDetailScreen(
             url = link.url,
             crawlResult,
             contentHtml,
+            paddingValues,
             Modifier
                 .padding(bottom = 8.dp)
                 .align(Alignment.TopStart),
@@ -126,7 +132,11 @@ fun LinkDetailScreen(
         )
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(bottom = bottomPaddingValue),
+            contentPadding = PaddingValues(
+                start = paddingValues.calculateLeftPadding(layoutDirection),
+                end = paddingValues.calculateRightPadding(layoutDirection),
+                bottom = bottomPaddingValue
+            ),
             modifier = Modifier
                 .padding(top = 40.dp)
                 .fillMaxSize()
@@ -193,7 +203,11 @@ fun LinkDetailScreen(
                     context.startActivity(browserIntent)
                 },
                 modifier = modifier
-                    .padding(bottom = 24.dp)
+                    .padding(
+                        start = paddingValues.calculateStartPadding(layoutDirection),
+                        end = paddingValues.calculateEndPadding(layoutDirection),
+                        bottom = paddingValues.calculateBottomPadding() + 8.dp
+                    )
                     .height(56.dp)
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter),
@@ -251,6 +265,7 @@ private fun LinkEditorScreenHeader(
     url: String,
     crawlResult: ApiResult<Unit>?,
     contentHtml: ContentHtml?,
+    paddingValues: PaddingValues,
     modifier: Modifier = Modifier,
     webViewError: WebViewError? = null,
     popNavigation: () -> Unit,
@@ -270,8 +285,14 @@ private fun LinkEditorScreenHeader(
             Arrangement.End
         }
     }
+    val layoutDirection = LocalLayoutDirection.current
     Row(
-        modifier.fillMaxWidth(),
+        modifier
+            .padding(
+                start = paddingValues.calculateStartPadding(layoutDirection),
+                end = paddingValues.calculateEndPadding(layoutDirection),
+            )
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = horizontalArrangement
     ) {
@@ -322,6 +343,7 @@ fun PreviewLinkEditorScreenHeader() {
         "https://www.example.com",
         crawlResult = null,
         contentHtml = null,
+        PaddingValues(0.dp),
         Modifier.padding(16.dp),
         popNavigation = {},
         onDownloadResourceClick = { _, _ -> }

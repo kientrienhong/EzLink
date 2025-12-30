@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -57,6 +58,7 @@ internal fun LinkSearchScreen(
     var currentSelectedLink by remember { mutableStateOf<Link?>(null) }
     val deleteLinkResult by viewModel.deleteLinkLiveData.observeAsState()
     val focusRequester = remember { FocusRequester() }
+    val localLayoutDirection = LocalLayoutDirection.current
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -82,7 +84,10 @@ internal fun LinkSearchScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp)
+            .padding(
+                start = paddingValues.calculateLeftPadding(localLayoutDirection) + 16.dp,
+                end = paddingValues.calculateRightPadding(localLayoutDirection) + 16.dp,
+            )
             .background(MaterialTheme.colorScheme.background)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -115,10 +120,12 @@ internal fun LinkSearchScreen(
         Spacer(modifier = Modifier.height(24.dp))
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(count = 2),
-            contentPadding = paddingValues,
+            contentPadding = PaddingValues(
+                bottom = paddingValues.calculateBottomPadding() + 16.dp
+            ),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalItemSpacing = 16.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxSize()
         ) {
             if (listLink.isEmpty()) {
                 item(span = StaggeredGridItemSpan.FullLine) {
