@@ -228,11 +228,19 @@ class LinkScreenViewModel @Inject constructor(
     }
 
     private fun sanitizeSearchQuery(query: String?): String {
-        if (query == null) {
+        if (query == null || query.isBlank()) {
             return ""
         }
-        val queryWithEscapedQuotes = query.replace(Regex.fromLiteral("\""), "\"\"")
-        return "*\"$queryWithEscapedQuotes\"*"
+        // Split query into words and add prefix wildcard to each word
+        // This allows: "A" -> "A*" matches "AI", "Android"
+        //              "and dev" -> "and* dev*" matches "android development"
+        val words = query.trim().split("\\s+".toRegex())
+        return words.joinToString(" ") { word ->
+            // Escape special FTS characters
+            val escaped = word.replace("\"", "\"\"")
+            // Add prefix wildcard for partial matching
+            "$escaped*"
+        }
     }
 
     private fun getIconUrl(domain: String): String = "https://logo.clearbit.com/$domain"
