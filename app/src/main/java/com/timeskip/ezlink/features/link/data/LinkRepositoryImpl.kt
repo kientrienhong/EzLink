@@ -18,11 +18,6 @@ class LinkRepositoryImpl @Inject constructor(
 ) : LinkRepository {
     override suspend fun getTag(tagName: String): Tag = tagDao.getTagByName(tagName)
 
-    override fun getLinkListLiveData(tagName: String): LiveData<List<Link>> =
-        linkDao.getLinkListLiveData(tagName)
-
-    override fun getAllLink(tagName: String): List<Link> = linkDao.getLinkList(tagName)
-
     override fun getLinksLiveData(tagName: String, searchQuery: String, limit: Int): LiveData<List<Link>> =
         linkDao.getLinksLiveData(tagName, searchQuery, limit)
 
@@ -46,8 +41,6 @@ class LinkRepositoryImpl @Inject constructor(
         return result
     }
 
-    override suspend fun search(query: String): List<Link> = linkDao.search(query)
-
     override suspend fun deleteLink(context: Context, link: Link): Boolean {
         // Delete stored image if it's a local file
         if (ImageStorageHelper.isLocalStoredImage(context, link.url)) {
@@ -67,10 +60,4 @@ class LinkRepositoryImpl @Inject constructor(
         liveData.value = emptyList()
         return liveData
     }
-
-    override suspend fun getLinks(tagName: String, offset: Int, limit: Int): List<Link> =
-        linkDao.getLinks(tagName, offset, limit)
-
-    override suspend fun searchPaged(query: String, offset: Int, limit: Int): List<Link> =
-        linkDao.searchPaged(query, offset, limit)
 }

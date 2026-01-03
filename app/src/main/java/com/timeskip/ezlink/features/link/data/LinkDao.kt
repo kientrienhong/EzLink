@@ -18,12 +18,6 @@ abstract class LinkDao {
     @Delete
     abstract suspend fun deleteLink(link: Link): Int
 
-    @Query("SELECT * FROM link Where tagName = :tagName ORDER BY dateOfCreated DESC")
-    abstract fun getLinkListLiveData(tagName: String): LiveData<List<Link>>
-
-    @Query("SELECT * FROM link Where tagName = :tagName ORDER BY dateOfCreated DESC")
-    abstract fun getLinkList(tagName: String): List<Link>
-
     /**
      * Unified query method that supports both tag filtering and FTS search
      * Returns LiveData that auto-updates when data changes
@@ -49,34 +43,8 @@ abstract class LinkDao {
         limit: Int
     ): LiveData<List<Link>>
 
-    @Query("SELECT * FROM link WHERE tagName = :tagName ORDER BY dateOfCreated DESC LIMIT :limit OFFSET :offset")
-    abstract suspend fun getLinks(tagName: String, offset: Int, limit: Int): List<Link>
-
-    @Query(
-        """
-        SELECT link.*
-        FROM link
-        JOIN link_fts ON link_fts.rowid = link.id
-        WHERE link_fts MATCH :query
-        ORDER BY link.dateOfCreated DESC
-        LIMIT :limit OFFSET :offset
-    """
-    )
-    abstract suspend fun searchPaged(query: String, offset: Int, limit: Int): List<Link>
-
     @Query("DELETE FROM link Where tagName = :tagName")
     abstract fun deleteLinksByTagName(tagName: String): Int
-
-    @Query(
-        """
-        SELECT link.*
-        FROM link
-        JOIN link_fts ON link_fts.rowid = link.id
-        WHERE link_fts MATCH :query
-        ORDER BY link.dateOfCreated DESC
-    """
-    )
-    abstract suspend fun search(query: String): List<Link>
 
     /**
      * Global search with LiveData support (no tag filter)

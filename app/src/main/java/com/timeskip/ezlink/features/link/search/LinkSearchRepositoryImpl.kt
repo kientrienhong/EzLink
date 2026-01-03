@@ -8,7 +8,6 @@ import javax.inject.Inject
 class LinkSearchRepositoryImpl @Inject constructor(
     private val linkDao: LinkDao,
 ) : LinkSearchRepository {
-    override suspend fun search(query: String): List<Link> = linkDao.search(query)
 
     override fun searchLiveData(searchQuery: String, limit: Int): LiveData<List<Link>> =
         linkDao.searchLiveData(searchQuery, limit)

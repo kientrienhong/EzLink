@@ -5,4 +5,4 @@ import androidx.room.Fts4
 
 @Entity(tableName = "link_fts")
 @Fts4(contentEntity = Link::class)
-data class LinkFts(val title: String, val description: String)
+data class LinkFts(val url: String, val title: String, val description: String)
