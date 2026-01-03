@@ -42,7 +42,8 @@ object UrlValidateUtils {
             tagName = tagName,
             iconUrl = uri,
             title = "",
-            description = ""
+            description = "",
+            dateOfCreated = System.currentTimeMillis()
         )
         ApiResult.Success(link)
 
@@ -86,8 +87,7 @@ object UrlValidateUtils {
                 return ApiResult.Error(IllegalArgumentException("Invalid URL"))
             }
 
-            val domain = LinkUrlHelper.getDomain(urlToValidate)
-            val iconUrl = getIconUrl(domain)
+            val iconUrl = LinkUrlHelper.getIconUrl(urlToValidate)
             val title =
                 fetchTitleWithRetry(tagName, urlToValidate, originalUrl, delayMillis, retryStep)
 
@@ -96,7 +96,8 @@ object UrlValidateUtils {
                 tagName = tagName,
                 iconUrl = iconUrl,
                 title = title,
-                description = ""
+                description = "",
+                dateOfCreated = System.currentTimeMillis()
             )
             ApiResult.Success(link)
         } catch (e: IllegalArgumentException) {
@@ -142,7 +143,5 @@ object UrlValidateUtils {
     }
 
     private fun isValidUrl(url: String): Boolean = Patterns.WEB_URL.matcher(url).matches()
-
-    private fun getIconUrl(domain: String): String = "https://s2.googleusercontent.com/s2/favicons?domain=$domain"
 
 }

@@ -178,7 +178,8 @@ private fun LinkScreenContentPreview() {
                     title = "Example Link Title $it",
                     description = "This is a description for example link number $it.",
                     iconUrl = null,
-                    tagName = "Sample Tag"
+                    tagName = "Sample Tag",
+                    dateOfCreated = System.currentTimeMillis()
                 )
             },
             searchValue = "",

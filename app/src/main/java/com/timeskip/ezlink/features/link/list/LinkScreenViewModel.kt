@@ -89,16 +89,29 @@ class LinkScreenViewModel @Inject constructor(
         listLinkMediatorLiveData.addSource(deleteLinkLiveData) {
             viewModelScope.launch {
                 if (deleteLinkLiveData.value is ApiResult.Success) {
-                    val result = withContext(Dispatchers.IO) {
-                        if (searchLiveData.value?.isBlank() == true) {
-                            loadNextPageInternal(reset = true)
-                        } else {
-                            loadNextPageInternal(searchQuery = searchLiveData.value, reset = true)
-                        }
-                    }
-                    listLinkMediatorLiveData.value = result
+                    refreshListAfterModification()
                 }
             }
+        }
+        listLinkMediatorLiveData.addSource(createLinkLiveData) {
+            viewModelScope.launch {
+                if (createLinkLiveData.value is ApiResult.Success) {
+                    refreshListAfterModification()
+                }
+            }
+        }
+    }
+
+    private fun refreshListAfterModification() {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                if (searchLiveData.value?.isBlank() == true) {
+                    loadNextPageInternal(reset = true)
+                } else {
+                    loadNextPageInternal(searchQuery = searchLiveData.value, reset = true)
+                }
+            }
+            listLinkMediatorLiveData.value = result
         }
     }
 
@@ -127,8 +140,7 @@ class LinkScreenViewModel @Inject constructor(
                 when (validationResult) {
                     is ApiResult.Success -> {
                         val link = if (isWebUrl) {
-                            val domain = LinkUrlHelper.getDomain(url)
-                            validationResult.data.copy(iconUrl = getIconUrl(domain))
+                            validationResult.data.copy(iconUrl = LinkUrlHelper.getIconUrl(url))
                         } else {
                             validationResult.data
                         }

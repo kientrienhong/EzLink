@@ -130,8 +130,7 @@ class TagViewModel @Inject constructor(
                 when (validationResult) {
                     is ApiResult.Success -> {
                         val link = if (isWebUrl) {
-                            val domain = LinkUrlHelper.getDomain(url)
-                            validationResult.data.copy(iconUrl = getIconUrl(domain))
+                            validationResult.data.copy(iconUrl = LinkUrlHelper.getIconUrl(url))
                         } else {
                             validationResult.data
                         }

@@ -1,5 +1,6 @@
 package com.timeskip.ezlink.features.common
 
+import androidx.annotation.VisibleForTesting
 import org.jsoup.Jsoup
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -7,6 +8,8 @@ import java.net.URI
 import java.net.URL
 
 object LinkUrlHelper {
+
+    @VisibleForTesting
     fun getDomain(url: String): String {
         val uri = URI(url)
         val domain = uri.host ?: getHostWithUrlWithoutProtocol(url)
@@ -15,6 +18,11 @@ object LinkUrlHelper {
         } else {
             domain
         }
+    }
+
+    fun getIconUrl(url: String): String {
+        val domain = getDomain(url)
+        return "https://s2.googleusercontent.com/s2/favicons?domain=$domain"
     }
 
     fun getTitle(url: String): String = Jsoup.connect(url).get().title()

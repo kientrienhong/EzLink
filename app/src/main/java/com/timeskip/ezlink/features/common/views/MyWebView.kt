@@ -1,8 +1,8 @@
 package com.timeskip.ezlink.features.common.views
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.util.Log
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -25,6 +25,7 @@ import com.timeskip.ezlink.features.common.ConnectivityObserver
 import com.timeskip.ezlink.features.link.detail.WebViewError
 import kotlinx.coroutines.delay
 
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebViewWithTimeout(
     url: String,
@@ -103,7 +104,6 @@ fun WebViewWithTimeout(
                                 error: WebResourceError?
                             ) {
                                 super.onReceivedError(view, request, error)
-                                Log.d("Test===", "onReceivedError: ${error?.description}")
                                 isLoading = false
                                 val isErrInternetDisconnect =
                                     error?.description?.contains("ERR_INTERNET_DISCONNECTED") == true

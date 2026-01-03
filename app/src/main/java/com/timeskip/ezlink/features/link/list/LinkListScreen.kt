@@ -41,7 +41,7 @@ internal fun LinkScreen(
     popBackStack: () -> Unit,
     paddingValues: PaddingValues = PaddingValues(0.dp)
 ) {
-    val context: Context = LocalContext.current
+    val context = LocalContext.current
     val viewModel = hiltViewModel<LinkScreenViewModel>()
     val createLinkResult by viewModel.createLinkLiveData.observeAsState()
     val listLink by viewModel.linkListLiveData.observeAsState()
@@ -141,7 +141,9 @@ internal fun LinkScreen(
             )
         }
         Box(
-            modifier = modifier.fillMaxSize().padding(paddingValues)
+            modifier = modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             FloatingActionButton(
                 onClick = { showBottomSheet = true },

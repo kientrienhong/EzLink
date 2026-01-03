@@ -100,7 +100,8 @@ private fun PreviewLinkItemLightMode() {
             url = "https://abc.com",
             iconUrl = "https://logo.clearbit.com/medium.com",
             title = "Abd.test",
-            description = "asdasdsaddsaaoverflowoverflowoverflow\n\noverflowoverflowoverflowoverflowdasdasdasdasdasdddddddsdasdasddas"
+            description = "asdasdsaddsaaoverflowoverflowoverflow\n\noverflowoverflowoverflowoverflowdasdasdasdasdasdddddddsdasdasddas",
+            dateOfCreated = System.currentTimeMillis()
         ),
         onNavigateToEditor = {}
     ) {}
@@ -116,7 +117,8 @@ private fun PreviewLinkItemDarkMode() {
             url = "https://abc.com",
             iconUrl = "https://logo.clearbit.com/medium.com",
             title = "Abd.test",
-            description = "asdasdsaddsaaoverflowoverflowoverflow\n\noverflowoverflowoverflowoverflowdasdasdasdasdasdddddddsdasdasddas"
+            description = "asdasdsaddsaaoverflowoverflowoverflow\n\noverflowoverflowoverflowoverflowdasdasdasdasdasdddddddsdasdasddas",
+            dateOfCreated = System.currentTimeMillis()
         ),
         onNavigateToEditor = {}
     ) {}

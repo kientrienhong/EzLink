@@ -28,5 +28,6 @@ data class Link(
     val url: String,
     val iconUrl: String?,
     val title: String,
-    val description: String
+    val description: String,
+    val dateOfCreated: Long
 ) : Parcelable
