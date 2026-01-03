@@ -34,10 +34,6 @@ class FirebaseInitializer : ContentProvider() {
             FirebaseApp.initializeApp(context)
             Log.d(TAG, "Firebase initialized successfully")
 
-            // Initialize Analytics
-            FirebaseAnalytics.getInstance(context)
-            Log.d(TAG, "Firebase Analytics initialized")
-
             val crashlytics = FirebaseCrashlytics.getInstance()
             crashlytics.isCrashlyticsCollectionEnabled = true
             Log.d(TAG, "FirebaseCrashlytics initialized")
