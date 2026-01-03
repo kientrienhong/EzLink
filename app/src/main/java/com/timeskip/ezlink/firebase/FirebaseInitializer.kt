@@ -6,7 +6,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.FirebaseApp
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 /**
