@@ -1,6 +1,5 @@
 package com.timeskip.ezlink.features.link.list
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,9 +35,9 @@ import com.timeskip.ezlink.features.tag.view.AddLinkBottomSheet
 
 @Composable
 internal fun LinkScreen(
-    modifier: Modifier = Modifier,
     navigateToLinkEditor: (Link, Boolean) -> Unit,
     popBackStack: () -> Unit,
+    modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(0.dp)
 ) {
     val context = LocalContext.current

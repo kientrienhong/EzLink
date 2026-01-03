@@ -6,21 +6,19 @@ import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.LinkUrlHelper
 import com.timeskip.ezlink.features.common.UrlValidateUtils
-import com.timeskip.ezlink.features.common.debounce
 import com.timeskip.ezlink.features.common.runBlocking
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.data.LinkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
@@ -39,9 +37,6 @@ class LinkScreenViewModel @Inject constructor(
     private val createLinkMutableLiveData: MutableLiveData<ApiResult<Link>?> = MutableLiveData()
     val createLinkLiveData: LiveData<ApiResult<Link>?> = createLinkMutableLiveData
 
-    private val listLinkMediatorLiveData: MediatorLiveData<List<Link>> = MediatorLiveData()
-    val linkListLiveData: LiveData<List<Link>> = listLinkMediatorLiveData
-
     private val deleteLinkMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
     val deleteLinkLiveData: LiveData<ApiResult<Boolean>> = deleteLinkMutableLiveData
 
@@ -56,63 +51,50 @@ class LinkScreenViewModel @Inject constructor(
     private val hasMoreItemsMutableLiveData = MutableLiveData(true)
     val hasMoreItems: LiveData<Boolean> = hasMoreItemsMutableLiveData
 
-    private val searchObserver: Observer<String> = Observer { query ->
-        debounceSearch(query)
-    }
+    // Current limit for pagination (increases as user loads more)
+    private val currentLimitMutableLiveData = MutableLiveData(pageSize)
 
-    private val debounceSearch = debounce<String>(
-        waitMs = 300L,
-        coroutineScope = viewModelScope
-    ) { search ->
-        viewModelScope.launch {
-            currentOffset = 0
-            hasMorePages = true
-            val result = withContext(Dispatchers.IO) {
-                if (search.isBlank()) {
-                    loadNextPageInternal(reset = true)
-                } else {
-                    loadNextPageInternal(searchQuery = search, reset = true)
-                }
-            }
-            listLinkMediatorLiveData.value = result
+    // Unified LiveData that switches based on search query and limit
+    private val unifiedLinksLiveData: LiveData<List<Link>> = currentLimitMutableLiveData.switchMap { limit ->
+        searchLiveData.switchMap { searchQuery ->
+            val sanitizedQuery = if (searchQuery.isBlank()) "" else sanitizeSearchQuery(searchQuery)
+            repository.getLinksLiveData(tagName.orEmpty(), sanitizedQuery, limit)
         }
     }
+
+    private val listLinkMediatorLiveData: MediatorLiveData<List<Link>> = MediatorLiveData()
+    val linkListLiveData: LiveData<List<Link>> = listLinkMediatorLiveData
 
     init {
-        searchLiveData.observeForever(searchObserver)
-        viewModelScope.launch {
-            val links = withContext(Dispatchers.IO) {
-                loadNextPageInternal(reset = true)
-            }
+        // Observe the unified LiveData
+        listLinkMediatorLiveData.addSource(unifiedLinksLiveData) { links ->
             listLinkMediatorLiveData.value = links
+            hasMorePages = links.size >= (currentLimitMutableLiveData.value ?: pageSize)
+            hasMoreItemsMutableLiveData.value = hasMorePages
+            isLoadingMoreMutableLiveData.value = false
         }
+
+        // Auto-refresh when delete succeeds
         listLinkMediatorLiveData.addSource(deleteLinkLiveData) {
-            viewModelScope.launch {
-                if (deleteLinkLiveData.value is ApiResult.Success) {
-                    refreshListAfterModification()
-                }
+            if (deleteLinkLiveData.value is ApiResult.Success) {
+                refreshList()
             }
         }
+
+        // Auto-refresh when create succeeds
         listLinkMediatorLiveData.addSource(createLinkLiveData) {
-            viewModelScope.launch {
-                if (createLinkLiveData.value is ApiResult.Success) {
-                    refreshListAfterModification()
-                }
+            if (createLinkLiveData.value is ApiResult.Success) {
+                refreshList()
             }
         }
     }
 
-    private fun refreshListAfterModification() {
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                if (searchLiveData.value?.isBlank() == true) {
-                    loadNextPageInternal(reset = true)
-                } else {
-                    loadNextPageInternal(searchQuery = searchLiveData.value, reset = true)
-                }
-            }
-            listLinkMediatorLiveData.value = result
-        }
+    fun refreshList() {
+        // Reset to first page
+        currentOffset = 0
+        currentLimitMutableLiveData.value = pageSize
+        hasMorePages = true
+        hasMoreItemsMutableLiveData.value = true
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -155,62 +137,29 @@ class LinkScreenViewModel @Inject constructor(
                     is ApiResult.Error -> ApiResult.Error(validationResult.exception)
                     is ApiResult.Loading -> ApiResult.Loading()
                 }
-            }  catch (e: SQLiteConstraintException) {
-            if (e.message?.contains("FOREIGN KEY constraint failed") == true) {
-                ApiResult.Error(IllegalArgumentException("Tag name is invalid"))
-            } else {
-                ApiResult.Error(IllegalArgumentException("Failed to create link! Please try again."))
+            } catch (e: SQLiteConstraintException) {
+                if (e.message?.contains("FOREIGN KEY constraint failed") == true) {
+                    ApiResult.Error(IllegalArgumentException("Tag name is invalid"))
+                } else {
+                    ApiResult.Error(IllegalArgumentException("Failed to create link! Please try again."))
+                }
             }
-        }
 
             createLinkMutableLiveData.postValue(result)
         }
     }
 
-    private suspend fun loadNextPageInternal(
-        searchQuery: String? = null,
-        reset: Boolean = false
-    ): List<Link> {
-        if (isLoadingPage) return listLinkMediatorLiveData.value.orEmpty()
-        if (!hasMorePages && !reset) return listLinkMediatorLiveData.value.orEmpty()
+    fun loadNextPage() {
+        if (isLoadingPage || !hasMorePages) return
 
         isLoadingPage = true
-        isLoadingMoreMutableLiveData.postValue(true)
-        if (reset) {
-            currentOffset = 0
-            hasMorePages = true
-            hasMoreItemsMutableLiveData.postValue(true)
-        }
+        isLoadingMoreMutableLiveData.value = true
 
-        val links = if (searchQuery.isNullOrBlank()) {
-            repository.getLinks(tagName.orEmpty(), currentOffset, pageSize)
-        } else {
-            val query = sanitizeSearchQuery(searchQuery)
-            repository.searchPaged(query, currentOffset, pageSize)
-        }
-
-        val currentList = if (reset) emptyList() else listLinkMediatorLiveData.value.orEmpty()
-        val newList = currentList + links
-
-        hasMorePages = links.size >= pageSize
-        hasMoreItemsMutableLiveData.postValue(hasMorePages)
-        if (hasMorePages) {
-            currentOffset += links.size
-        }
+        // Increase the limit to load more items
+        val currentLimit = currentLimitMutableLiveData.value ?: pageSize
+        currentLimitMutableLiveData.value = currentLimit + pageSize
 
         isLoadingPage = false
-        isLoadingMoreMutableLiveData.postValue(false)
-        return newList
-    }
-
-    fun loadNextPage() {
-        viewModelScope.launch {
-            val search = searchLiveData.value
-            val newList = withContext(Dispatchers.IO) {
-                loadNextPageInternal(searchQuery = search, reset = false)
-            }
-            listLinkMediatorLiveData.value = newList
-        }
     }
 
     fun updateSearch(search: String) {
@@ -254,6 +203,4 @@ class LinkScreenViewModel @Inject constructor(
             "$escaped*"
         }
     }
-
-    private fun getIconUrl(domain: String): String = "https://logo.clearbit.com/$domain"
 }

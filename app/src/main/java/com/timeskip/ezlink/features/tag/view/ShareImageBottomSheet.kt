@@ -47,7 +47,9 @@ fun <T> ShareImageBottomSheet(
     modifier: Modifier = Modifier,
     dropDownEnabled: Boolean = true
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     LaunchedEffect(result) {
         when (result) {
             is ApiResult.Success -> {

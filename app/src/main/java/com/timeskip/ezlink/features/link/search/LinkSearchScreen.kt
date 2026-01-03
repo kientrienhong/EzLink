@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -42,6 +44,9 @@ import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.link.list.LinkItem
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 
 @Composable
 internal fun LinkSearchScreen(
@@ -59,6 +64,7 @@ internal fun LinkSearchScreen(
     val deleteLinkResult by viewModel.deleteLinkLiveData.observeAsState()
     val focusRequester = remember { FocusRequester() }
     val localLayoutDirection = LocalLayoutDirection.current
+    val gridState = rememberLazyStaggeredGridState()
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -79,6 +85,23 @@ internal fun LinkSearchScreen(
             is ApiResult.Loading,
             null -> Unit
         }
+    }
+
+    LaunchedEffect(gridState) {
+        snapshotFlow { gridState.layoutInfo }
+            .map { layoutInfo ->
+                val totalItemsCount = layoutInfo.totalItemsCount
+                val lastVisibleIndex =
+                    layoutInfo.visibleItemsInfo.maxOfOrNull { it.index } ?: 0
+                totalItemsCount to lastVisibleIndex
+            }
+            .distinctUntilChanged()
+            .filter { (total, lastVisible) ->
+                total > 0 && lastVisible >= total - 4
+            }
+            .collect {
+                viewModel.loadNextPage()
+            }
     }
 
     Column(

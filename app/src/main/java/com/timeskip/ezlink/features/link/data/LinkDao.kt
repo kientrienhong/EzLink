@@ -24,6 +24,31 @@ abstract class LinkDao {
     @Query("SELECT * FROM link Where tagName = :tagName ORDER BY dateOfCreated DESC")
     abstract fun getLinkList(tagName: String): List<Link>
 
+    /**
+     * Unified query method that supports both tag filtering and FTS search
+     * Returns LiveData that auto-updates when data changes
+     *
+     * @param tagName Tag to filter by
+     * @param searchQuery FTS search query (empty string means no search, just filter by tag)
+     * @param limit Maximum number of results (for pagination)
+     */
+    @Query(
+        """
+        SELECT link.*
+        FROM link
+        LEFT JOIN link_fts ON link_fts.rowid = link.id
+        WHERE link.tagName = :tagName
+          AND (CASE WHEN :searchQuery = '' THEN 1 ELSE link_fts MATCH :searchQuery END)
+        ORDER BY link.dateOfCreated DESC
+        LIMIT :limit
+    """
+    )
+    abstract fun getLinksLiveData(
+        tagName: String,
+        searchQuery: String,
+        limit: Int
+    ): LiveData<List<Link>>
+
     @Query("SELECT * FROM link WHERE tagName = :tagName ORDER BY dateOfCreated DESC LIMIT :limit OFFSET :offset")
     abstract suspend fun getLinks(tagName: String, offset: Int, limit: Int): List<Link>
 
@@ -52,5 +77,22 @@ abstract class LinkDao {
     """
     )
     abstract suspend fun search(query: String): List<Link>
+
+    /**
+     * Global search with LiveData support (no tag filter)
+     * @param searchQuery FTS search query
+     * @param limit Maximum number of results (for pagination)
+     */
+    @Query(
+        """
+        SELECT link.*
+        FROM link
+        JOIN link_fts ON link_fts.rowid = link.id
+        WHERE link_fts MATCH :searchQuery
+        ORDER BY link.dateOfCreated DESC
+        LIMIT :limit
+    """
+    )
+    abstract fun searchLiveData(searchQuery: String, limit: Int): LiveData<List<Link>>
 
 }

@@ -1,20 +1,17 @@
 package com.timeskip.ezlink.features.link.search
 
-import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.timeskip.ezlink.features.common.ApiResult
-import com.timeskip.ezlink.features.common.debounce
 import com.timeskip.ezlink.features.common.runBlocking
 import com.timeskip.ezlink.features.link.data.Link
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,28 +22,83 @@ class LinkSearchViewModel @Inject constructor(
     private val search: String = savedStateHandle["search"] ?: ""
     private val searchMutableLiveData: MutableLiveData<String> = MutableLiveData(search)
     val searchLiveData: LiveData<String> = searchMutableLiveData
-    private val searchObserver: Observer<String> = Observer {
-        debounceSearch(it)
-    }
-    private val deleteLinkMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
 
+    private val deleteLinkMutableLiveData: MutableLiveData<ApiResult<Boolean>> = MutableLiveData()
     val deleteLinkLiveData: LiveData<ApiResult<Boolean>> = deleteLinkMutableLiveData
 
-    private val listLinkMutableLiveData: MutableLiveData<List<Link>> =
-        MutableLiveData()
-    val linkListLiveData: LiveData<List<Link>> = listLinkMutableLiveData
+    private var currentOffset = 0
+    private val pageSize = 10
+    private var isLoadingPage = false
+    private var hasMorePages = true
 
-    private val debounceSearch = debounce(
-        waitMs = 300L,
-        coroutineScope = viewModelScope,
-        ::onSearch
-    )
+    private val isLoadingMoreMutableLiveData = MutableLiveData(false)
+
+    private val hasMoreItemsMutableLiveData = MutableLiveData(true)
+
+    // Current limit for pagination (increases as user loads more)
+    private val currentLimitMutableLiveData = MutableLiveData(pageSize)
+
+    // Unified LiveData that switches based on search query and limit
+    private val unifiedLinksLiveData: LiveData<List<Link>> = currentLimitMutableLiveData.switchMap { limit ->
+        searchLiveData.switchMap { searchQuery ->
+            if (searchQuery.isBlank()) {
+                // Return empty LiveData for blank search
+                MutableLiveData(emptyList())
+            } else {
+                val sanitizedQuery = sanitizeSearchQuery(searchQuery)
+                repository.searchLiveData(sanitizedQuery, limit)
+            }
+        }
+    }
+
+    private val listLinkMediatorLiveData: MediatorLiveData<List<Link>> = MediatorLiveData()
+    val linkListLiveData: LiveData<List<Link>> = listLinkMediatorLiveData
 
     init {
-        searchLiveData.observeForever(searchObserver)
+        // Observe the unified LiveData
+        listLinkMediatorLiveData.addSource(unifiedLinksLiveData) { links ->
+            listLinkMediatorLiveData.value = links
+            // Update hasMorePages based on result size
+            hasMorePages = links.size >= (currentLimitMutableLiveData.value ?: pageSize)
+            hasMoreItemsMutableLiveData.value = hasMorePages
+            isLoadingMoreMutableLiveData.value = false
+        }
+
+        // Auto-refresh when delete succeeds
+        listLinkMediatorLiveData.addSource(deleteLinkLiveData) {
+            if (deleteLinkLiveData.value is ApiResult.Success) {
+                refreshList()
+            }
+        }
+    }
+
+    fun refreshList() {
+        // Reset to first page
+        currentOffset = 0
+        currentLimitMutableLiveData.value = pageSize
+        hasMorePages = true
+        hasMoreItemsMutableLiveData.value = true
+    }
+
+    fun loadNextPage() {
+        if (isLoadingPage || !hasMorePages) return
+
+        isLoadingPage = true
+        isLoadingMoreMutableLiveData.value = true
+
+        // Increase the limit to load more items
+        val currentLimit = currentLimitMutableLiveData.value ?: pageSize
+        currentLimitMutableLiveData.value = currentLimit + pageSize
+
+        isLoadingPage = false
     }
 
     fun updateSearch(search: String) {
+        // Reset pagination when search changes
+        currentOffset = 0
+        currentLimitMutableLiveData.value = pageSize
+        hasMorePages = true
+        hasMoreItemsMutableLiveData.value = true
         searchMutableLiveData.value = search
     }
 
@@ -68,28 +120,6 @@ class LinkSearchViewModel @Inject constructor(
         }
     }
 
-    private fun onSearch(search: String) {
-        Log.d("LinkSearchViewModel", "onSearch")
-
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                Log.d("LinkSearchViewModel", "Searching for: $search")
-                if (search.isNotEmpty()) {
-                    return@withContext searchLink(search)
-                }
-
-                return@withContext emptyList()
-            }
-            Log.d("LinkSearchViewModel", "result for: $result")
-
-            listLinkMutableLiveData.value = result
-        }
-    }
-
-    private suspend fun searchLink(query: String): List<Link> {
-        val searchQuery = sanitizeSearchQuery(query)
-        return repository.search(searchQuery)
-    }
 
     private fun sanitizeSearchQuery(query: String): String {
         // Split query into words and add prefix wildcard to each word

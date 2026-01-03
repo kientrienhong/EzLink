@@ -47,6 +47,10 @@ class LinkDetailViewModel @Inject constructor(
     fun getContentHtmlLiveData(linkId: Int): LiveData<ContentHtml?> =
         contentHtmlRepository.getContentHtmlLiveData(linkId)
 
+    fun initializeLink(link: Link) {
+        linkMutableLiveData.value = link
+    }
+
     fun updateLink(link: Link) {
         viewModelScope.launch {
             if (linkUpdateResultMutableLiveData.value is ApiResult.Loading) {

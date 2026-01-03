@@ -11,6 +11,14 @@ interface LinkRepository {
 
     fun getAllLink(tagName: String): List<Link>
 
+    /**
+     * Unified LiveData method that supports both tag filtering and search
+     * @param tagName Tag to filter by
+     * @param searchQuery Search query (empty string = no search)
+     * @param limit Maximum results for pagination
+     */
+    fun getLinksLiveData(tagName: String, searchQuery: String, limit: Int): LiveData<List<Link>>
+
     suspend fun insertLink(link: Link): Boolean
 
     suspend fun updateLink(link: Link): Boolean

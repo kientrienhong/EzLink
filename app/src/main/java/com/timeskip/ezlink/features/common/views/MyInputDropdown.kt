@@ -32,7 +32,6 @@ fun MyInputDropdown(
     enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var textSearch by remember { mutableStateOf(value) }
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = {
@@ -45,8 +44,8 @@ fun MyInputDropdown(
     ) {
         MyTextField(
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable, true),
-            onChange = { textSearch = it },
-            value = textSearch,
+            onChange = onChangeValue,
+            value = value,
             placeholder = "Favorites",
             trailingIcon = {
                 val (resource, contentDescription) = if (expanded) {
@@ -61,30 +60,26 @@ fun MyInputDropdown(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
-            enabled = enabled
+            enabled = false
         )
 
-        val filteringOptions = options.filter { it.contains(textSearch, ignoreCase = true) }
-        if (filteringOptions.isNotEmpty()) {
-            DropdownMenu(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.surface)
-                    .exposedDropdownSize(true),
-                properties = PopupProperties(focusable = false),
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                filteringOptions.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        text = { Text(selectionOption) },
-                        onClick = {
-                            onChangeValue(selectionOption)
-                            textSearch = selectionOption
-                            expanded = false
-                        },
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                    )
-                }
+        DropdownMenu(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
+                .exposedDropdownSize(true),
+            properties = PopupProperties(focusable = false),
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text(selectionOption) },
+                    onClick = {
+                        onChangeValue(selectionOption)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
             }
         }
     }

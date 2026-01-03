@@ -85,8 +85,8 @@ fun LinkDetailScreen(
     val scrollState = rememberScrollState()
     var isOpenDialog by remember { mutableStateOf(false) }
     val listTagName by viewModel.listTagName.observeAsState(emptyList())
-    val link by viewModel.linkLiveData.observeAsState(link)
-    val bottomPaddingValue = if (ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+    val localLink by viewModel.linkLiveData.observeAsState(link)
+    val bottomPaddingValue = if (ImageStorageHelper.isLocalStoredImage(context, localLink.url)) {
         paddingValues.calculateBottomPadding()
     } else {
         paddingValues.calculateBottomPadding() + 56.dp + 24.dp
@@ -99,9 +99,16 @@ fun LinkDetailScreen(
         }
     }
 
+    LaunchedEffect(link) {
+        viewModel.initializeLink(link)
+    }
+
     LaunchedEffect(updateResult) {
         when (val result = updateResult) {
-            is ApiResult.Success,
+            is ApiResult.Success -> {
+                isOpenDialog = false
+            }
+
             is ApiResult.Loading,
             null -> Unit
 
@@ -116,8 +123,8 @@ fun LinkDetailScreen(
             .background(Color.Transparent)
     ) {
         LinkEditorScreenHeader(
-            linkId = link.id ?: 0,
-            url = link.url,
+            linkId = localLink.id ?: 0,
+            url = localLink.url,
             crawlResult,
             contentHtml,
             paddingValues,
@@ -143,14 +150,14 @@ fun LinkDetailScreen(
         ) {
             item {
                 Text(
-                    text = link.title.takeIf { it.isNotEmpty() } ?: "(No title)",
+                    text = localLink.title.takeIf { it.isNotEmpty() } ?: "(No title)",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
                 )
                 Text(
-                    text = link.description.takeIf { it.isNotEmpty() } ?: "(No description)",
+                    text = localLink.description.takeIf { it.isNotEmpty() } ?: "(No description)",
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -168,10 +175,10 @@ fun LinkDetailScreen(
                         .background(MaterialTheme.colorScheme.surface)
                         .verticalScroll(scrollState)
                 ) {
-                    if (ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+                    if (ImageStorageHelper.isLocalStoredImage(context, localLink.url)) {
                         // Display local stored image
                         GlideImage(
-                            model = link.url,
+                            model = localLink.url,
                             contentDescription = "Shared image",
                             modifier = Modifier.align(Alignment.Center),
                             contentScale = ContentScale.FillBounds,
@@ -181,7 +188,7 @@ fun LinkDetailScreen(
                     } else {
                         // Display web URL in WebView
                         WebViewWithTimeout(
-                            link.url,
+                            localLink.url,
                             Modifier
                                 .fillMaxSize()
                                 .align(Alignment.Center),
@@ -189,17 +196,22 @@ fun LinkDetailScreen(
                             contentHtml?.content,
                             networkStatus = networkStatus,
                             updateWebViewError = { webViewError = it },
-                            updateContent = { viewModel.refreshContentHtml(link.id ?: 0, link.url) }
+                            updateContent = {
+                                viewModel.refreshContentHtml(
+                                    localLink.id ?: 0,
+                                    localLink.url
+                                )
+                            }
                         )
                     }
                 }
             }
         }
 
-        if (!ImageStorageHelper.isLocalStoredImage(context, link.url)) {
+        if (!ImageStorageHelper.isLocalStoredImage(context, localLink.url)) {
             Button(
                 onClick = {
-                    val browserIntent = Intent(Intent.ACTION_VIEW, link.url.toUri())
+                    val browserIntent = Intent(Intent.ACTION_VIEW, localLink.url.toUri())
                     context.startActivity(browserIntent)
                 },
                 modifier = modifier
@@ -229,7 +241,7 @@ fun LinkDetailScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            viewModel.deleteContentHtml(link.id ?: 0)
+                            viewModel.deleteContentHtml(localLink.id ?: 0)
                             isAlertOpen = false
                             viewModel.resetCrawlWebResult()
                         }
@@ -246,7 +258,7 @@ fun LinkDetailScreen(
         }
         if (isOpenDialog) {
             EditLinkBottomSheet(
-                link = link,
+                link = localLink,
                 listTagName = listTagName,
                 result = updateResult,
                 onDismissRequest = { isOpenDialog = false },
