@@ -19,6 +19,15 @@
         android:theme="@style/Theme.LinkKeeper"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+
+        <!-- Firebase Initializer ContentProvider for early initialization -->
+        <provider
+            android:name=".firebase.FirebaseInitializer"
+            android:authorities="${applicationId}.firebaseinitializer"
+            android:exported="false"
+            android:enabled="true"
+            android:initOrder="100" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
