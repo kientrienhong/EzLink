@@ -57,14 +57,6 @@ fun WebViewWithTimeout(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if (webViewError != null) {
-            GrayLogoWithTextView(
-                modifier = Modifier.fillMaxSize(),
-                textContent = webViewError.description
-            )
-            return
-        }
-
         // AndroidView is the standard way to host a classic Android View
         key(networkStatus, url, webContent) {
             AndroidView(
@@ -90,12 +82,14 @@ fun WebViewWithTimeout(
                             ) {
                                 super.onPageStarted(view, url, favicon)
                                 isLoading = true
+                                updateWebViewError(null)
                                 didTimeout = false
                             }
 
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 super.onPageFinished(view, url)
                                 isLoading = false
+                                updateWebViewError(null)
                             }
 
                             override fun onReceivedError(
@@ -126,7 +120,10 @@ fun WebViewWithTimeout(
                 update = { webView ->
                     isLoading = true
                     didTimeout = false
-                    if (networkStatus == ConnectivityObserver.Status.Lost) {
+                    if (
+                        networkStatus == ConnectivityObserver.Status.Lost ||
+                        networkStatus == ConnectivityObserver.Status.Unavailable
+                    ) {
                         webView.loadDataWithBaseURL(
                             null,
                             webContent.orEmpty(),
@@ -142,6 +139,13 @@ fun WebViewWithTimeout(
                 },
                 modifier = Modifier.fillMaxSize()
             )
+        }
+        if (webViewError != null) {
+            GrayLogoWithTextView(
+                modifier = Modifier.fillMaxSize(),
+                textContent = webViewError.description
+            )
+            return
         }
         if (isLoading) {
             CircularProgressIndicator()

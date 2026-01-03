@@ -11,7 +11,5 @@ interface ContentHtmlRepository {
 
     suspend fun updateContentHtml(contentHtml: ContentHtml): Boolean
 
-    suspend fun deleteContentHtml(linkId: Int): Boolean
-
     suspend fun deleteContentHtmlByLinkId(linkId: Int): Boolean
 }

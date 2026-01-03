@@ -18,10 +18,6 @@ class ContentHtmlRepositoryImpl @Inject constructor(
         return contentHtmlDao.updateContentHtml(contentHtml) > 0
     }
 
-    override suspend fun deleteContentHtml(linkId: Int): Boolean {
-        return contentHtmlDao.deleteContentHtml(linkId) > 0
-    }
-
     override suspend fun deleteContentHtmlByLinkId(linkId: Int): Boolean {
         return contentHtmlDao.deleteContentHtmlByLinkId(linkId) > 0
     }
