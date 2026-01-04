@@ -44,19 +44,19 @@ sealed class FabButtonState(val image: ImageVector) {
 }
 
 @Composable
-private fun rememberMultiFabState() =
+fun rememberMultiFabState() =
     remember { mutableStateOf<FabButtonState>(FabButtonState.Collapsed) }
 
 @Composable
 fun MultiFloatingActionButton(
     list: List<FabViewItem>,
     modifier: Modifier = Modifier,
-    fabState: MutableState<FabButtonState> = rememberMultiFabState(),
+    fabState: FabButtonState,
     stateChanged: (fabState: FabButtonState) -> Unit = {}
 ) {
     // Animation for rotating the main FAB icon based on its state (expanded or collapsed)
     val rotation by animateFloatAsState(
-        if (fabState.value == FabButtonState.Expand) {
+        if (fabState == FabButtonState.Expand) {
             90f
         } else {
             0f
@@ -69,7 +69,7 @@ fun MultiFloatingActionButton(
         horizontalAlignment = Alignment.End
     ) {
         AnimatedVisibility(
-            visible = fabState.value.isExpanded(),
+            visible = fabState.isExpanded(),
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically()
         ) {
@@ -86,16 +86,13 @@ fun MultiFloatingActionButton(
         }
 
         FloatingActionButton(
-            onClick = {
-                fabState.value = fabState.value.toggleValue()
-                stateChanged(fabState.value)
-            },
+            onClick = { stateChanged(fabState.toggleValue()) },
             shape = CircleShape,
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
             Icon(
-                imageVector = fabState.value.image,
+                imageVector = fabState.image,
                 contentDescription = "",
                 modifier = Modifier
                     .rotate(rotation)

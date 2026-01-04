@@ -50,8 +50,10 @@ import com.timeskip.ezlink.features.common.views.GrayLogoWithTextView
 import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.link.data.Link
 import com.timeskip.ezlink.features.tag.data.Tag
+import com.timeskip.ezlink.features.tag.fab.FabButtonState
 import com.timeskip.ezlink.features.tag.fab.FabViewItem
 import com.timeskip.ezlink.features.tag.fab.MultiFloatingActionButton
+import com.timeskip.ezlink.features.tag.fab.rememberMultiFabState
 
 @Composable
 internal fun TagScreen(
@@ -71,7 +73,7 @@ internal fun TagScreen(
     val stateLinkCreating by viewModel.createLinkLiveData.observeAsState()
     val stateDeleteTagResult by viewModel.deleteTagLiveData.observeAsState()
     val url by viewModel.urlLiveData.observeAsState(shareInfoModel?.sharedUrl)
-
+    var multiFabState by rememberMultiFabState()
     var showTagAddBottomSheet by remember { mutableStateOf(false) }
     var showLinkAddBottomSheet by remember { mutableStateOf(false) }
     var showShareImageBottomSheet by remember { mutableStateOf(false) }
@@ -197,6 +199,18 @@ internal fun TagScreen(
                 urlInputEnabled = urlTextInputEnabled
             )
         }
+        if(multiFabState == FabButtonState.Expand) {
+            // Dim background when FAB is expanded
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.01f))
+                    .clickable {
+                        multiFabState = multiFabState.toggleValue()
+                    }
+            )
+        }
+
         Box(
             modifier = modifier.fillMaxSize()
         ) {
@@ -215,8 +229,11 @@ internal fun TagScreen(
                 ),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(bottom = 32.dp, end = 24.dp)
-            )
+                    .padding(bottom = 32.dp, end = 24.dp),
+                multiFabState
+            ) {
+                multiFabState = it
+            }
         }
     }
 }
