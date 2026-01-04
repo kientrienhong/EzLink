@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,6 +48,7 @@ import com.timeskip.ezlink.R
 import com.timeskip.ezlink.ShareInfoModel
 import com.timeskip.ezlink.features.common.ApiResult
 import com.timeskip.ezlink.features.common.ImageStorageHelper
+import com.timeskip.ezlink.features.common.MyLoadingView
 import com.timeskip.ezlink.features.common.views.GrayLogoWithTextView
 import com.timeskip.ezlink.features.common.views.MyTextField
 import com.timeskip.ezlink.features.link.data.Link
@@ -310,9 +312,7 @@ private fun LazyListScope.listTagItemWithHeader(
 ) {
     when (stateFlowInitialLoad) {
         is ApiResult.Loading -> item {
-            Box(Modifier.fillMaxSize()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
+            MyLoadingView()
         }
 
         is ApiResult.Success -> {
