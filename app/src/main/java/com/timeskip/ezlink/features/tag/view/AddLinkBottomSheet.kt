@@ -115,7 +115,7 @@ private fun <T> AddLinkBottomSheetContent(
             shape = MaterialTheme.shapes.small
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Text("Category", style = MaterialTheme.typography.bodyMedium)
+        Text("Tag", style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.height(4.dp))
         MyInputDropdown(
             options = listTagName,

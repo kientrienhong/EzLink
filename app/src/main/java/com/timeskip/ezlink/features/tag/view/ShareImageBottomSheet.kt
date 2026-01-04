@@ -100,7 +100,6 @@ private fun <T> ShareImageBottomSheetContent(
     Column(modifier = modifier.padding(vertical = 16.dp, horizontal = 16.dp)) {
         Text("Share image")
         Spacer(modifier = Modifier.height(12.dp))
-
         // Image preview container
         Column(
             modifier = Modifier
@@ -122,8 +121,9 @@ private fun <T> ShareImageBottomSheetContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Tag", style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(4.dp))
         // Tag dropdown
         MyInputDropdown(
             options = listTagName,

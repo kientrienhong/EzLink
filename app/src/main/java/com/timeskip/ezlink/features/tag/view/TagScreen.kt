@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -199,7 +200,7 @@ internal fun TagScreen(
                 urlInputEnabled = urlTextInputEnabled
             )
         }
-        if(multiFabState == FabButtonState.Expand) {
+        if (multiFabState == FabButtonState.Expand) {
             // Dim background when FAB is expanded
             Box(
                 modifier = Modifier
@@ -217,7 +218,7 @@ internal fun TagScreen(
             MultiFloatingActionButton(
                 listOf(
                     FabViewItem(
-                        label = "Add Tag",
+                        label = "Add tag",
                         iconRes = R.drawable.tag,
                         onClick = { showTagAddBottomSheet = true }
                     ),
@@ -284,7 +285,7 @@ private fun TagScreenMainContent(
     if (currentSelectedTag != null) {
         AlertDialog(
             onDismissRequest = { currentSelectedTagChanged(null) },
-            title = { Text("Delete Tag") },
+            title = { Text("Delete tag") },
             text = { Text("Are you sure you want to delete this tag?") },
             confirmButton = {
                 TextButton(onClick = { onDeleteTag(currentSelectedTag) }) {
@@ -308,8 +309,10 @@ private fun LazyListScope.listTagItemWithHeader(
     onSearchClick: (String) -> Unit,
 ) {
     when (stateFlowInitialLoad) {
-        is ApiResult.Loading -> {
-            item { Text("Loading") }
+        is ApiResult.Loading -> item {
+            Box(Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
 
         is ApiResult.Success -> {
@@ -383,13 +386,11 @@ private fun LazyListScope.listTagItemWithHeader(
             }
         }
 
-        is ApiResult.Error -> {
-            item {
-                GrayLogoWithTextView(
-                    modifier = Modifier.fillMaxSize(),
-                    textContent = "There is unexpected error occurred. Please kill and re-open app again."
-                )
-            }
+        is ApiResult.Error -> item {
+            GrayLogoWithTextView(
+                modifier = Modifier.fillMaxSize(),
+                textContent = "There is unexpected error occurred. Please kill and re-open app again."
+            )
         }
     }
 }
